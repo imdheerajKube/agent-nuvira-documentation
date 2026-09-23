@@ -1,0 +1,68 @@
+site_name: Agent-Nuvira Documentation
+site_description: Multi-agent AI coding CLI — user manual, command reference, architecture.
+site_url: https://imdheerajkube.github.io/agent-nuvira-documentation/
+repo_url: https://github.com/imdheerajKube/agent-nuvira-documentation
+repo_name: imdheerajKube/agent-nuvira-documentation
+edit_uri: edit/main/docs/
+
+theme:
+  name: material
+  features:
+    - navigation.sections
+    - navigation.top
+    - navigation.indexes
+    - content.code.copy
+    - search.suggest
+    - search.highlight
+    - toc.follow
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.details
+  - pymdownx.highlight
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+
+nav:
+  - Home: index.md
+  - User Manual: user-manual.md
+  - Capabilities: capabilities.md
+  - Command Reference: commands.md
+  - Full Command Surface: reference/commands-surface.md
+  - Architecture: architecture.md
+  - What's New: whats-new.md
+  - CLI Tour: demos/index.md
+  - Product Strategy: product-strategy.md
+  - Pitch Deck: pitch-deck.md
+
+plugins:
+  - search
+
+# The CLI tour is a .cast asset, not a page, so links to it are expected and must
+# not fail the build. Broken page-to-page links are caught by the build script's
+# own guard (scripts/build-docs-repo.mjs --check) before anything is pushed.
+validation:
+  links:
+    not_found: warn
+    absolute_links: ignore
+    unrecognized_links: ignore
+
+copyright: MIT License · Copyright (c) 2026 Dheeraj Sharma
