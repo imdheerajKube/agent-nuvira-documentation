@@ -14,7 +14,7 @@
   <link rel="apple-touch-icon" href="{{ 'assets/apple-touch-icon.png' | url }}">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="Agent-Nuvira Documentation">
-  <meta property="og:title" content="{% if page and page.title %}{{ page.title }} · Agent-Nuvira{% else %}Agent-Nuvira Documentation{% endif %}">
+  <meta property="og:title" content="{% if page and page.is_homepage %}Agent-Nuvira Documentation{% elif page and page.title %}{{ page.title }} · Agent-Nuvira{% else %}Agent-Nuvira Documentation{% endif %}">
   <meta property="og:description" content="{{ config.site_description }}">
   <meta property="og:url" content="{% if page and page.canonical_url %}{{ page.canonical_url }}{% else %}{{ config.site_url }}{% endif %}">
   <meta property="og:image" content="{{ config.site_url }}assets/og-card.png">
@@ -22,7 +22,7 @@
   <meta property="og:image:height" content="630">
   <meta property="og:image:alt" content="Agent-Nuvira — multi-agent AI coding CLI">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="{% if page and page.title %}{{ page.title }} · Agent-Nuvira{% else %}Agent-Nuvira Documentation{% endif %}">
+  <meta name="twitter:title" content="{% if page and page.is_homepage %}Agent-Nuvira Documentation{% elif page and page.title %}{{ page.title }} · Agent-Nuvira{% else %}Agent-Nuvira Documentation{% endif %}">
   <meta name="twitter:description" content="{{ config.site_description }}">
   <meta name="twitter:image" content="{{ config.site_url }}assets/og-card.png">
 {% endblock %}
