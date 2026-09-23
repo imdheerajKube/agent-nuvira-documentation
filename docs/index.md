@@ -1,3 +1,5 @@
+![Agent-Nuvira](assets/logo.svg){ width="76" }
+
 # Agent-Nuvira — Documentation
 
 Agent-Nuvira is a **multi-agent AI coding CLI**. It plans, writes, reviews, tests and
