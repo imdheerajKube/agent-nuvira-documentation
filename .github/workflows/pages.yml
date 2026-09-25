@@ -26,6 +26,18 @@ jobs:
           python-version: "3.12"
       - run: pip install -r requirements.txt
       - run: mkdocs build
+
+      # docs.agent-nuvira.com is served by a Cloudflare Pages project. Its Git
+      # integration does not build on push, so the rendered site is uploaded
+      # from here instead — the same build that feeds GitHub Pages, which is
+      # kept only because it redirects github.io to the live address.
+      - name: Publish to Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy site --project-name agent-nuvira-docs --commit-dirty=true
+
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
