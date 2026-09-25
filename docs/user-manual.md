@@ -21,9 +21,9 @@ against this build before it was written (see [§15 Verification log](#15-verifi
 6. [Channels and the Gateway](#6-channels-and-the-gateway)
 7. [Skills](#7-skills)
 8. [Workflows](#8-workflows)
-9. [Beyond code — the tool surface](#9-beyond-code--the-tool-surface)
+9. [Beyond code: the tool surface](#9-beyond-code-the-tool-surface)
 10. [Power tools](#10-power-tools)
-11. [Cookbook — copy-paste recipes](#11-cookbook--copy-paste-recipes)
+11. [Cookbook: copy-paste recipes](#11-cookbook-copy-paste-recipes)
 12. [Dashboard and CLI parity map](#12-dashboard-and-cli-parity-map)
 13. [Limitations and roadmap](#13-limitations-and-roadmap)
 14. [Troubleshooting](#14-troubleshooting)
@@ -389,7 +389,7 @@ nuvira workflow publish                # share your own
 
 ---
 
-## 9. Beyond code — the tool surface
+## 9. Beyond code: the tool surface
 
 The agent has **110 tools**. This is the honest list of what it can do that is not "write a
 file". Categories below are descriptive; run `nuvira tools list` for the live registry.
@@ -572,7 +572,7 @@ nuvira sdk
 
 ---
 
-## 11. Cookbook — copy-paste recipes
+## 11. Cookbook: copy-paste recipes
 
 **Fix a bug end to end**
 ```bash
