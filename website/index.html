@@ -1,0 +1,1103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Agent-Nuvira — Multi-Agent AI Coding Assistant</title>    <meta name="description" content="Agent-Nuvira is an open-source, multi-agent AI coding assistant with a visual dashboard (chat, diff accept/reject, run, ship) and a powerful terminal CLI. 17+ specialized agents, 22+ AI providers, 5,723+ tests, a 22-platform messaging gateway, GitLab + GitHub PR review built-in. Plan, write, review, test, and publish code — your way." />          <meta name="keywords" content="AI coding assistant, multi-agent AI, terminal AI tool, open source, 17+ providers, Groq, NVIDIA NIM, Google Gemini, OpenRouter, Ollama, OpenAI, Anthropic, Mistral, Azure, vLLM, LM Studio, FAISS vector store, auto model routing, quota ledger, team collaboration, MCP, GitLab, PR review, GitHub, Thompson-sampling bandit, routing strategy, per-model learning, promotion gate, capability-aware scoring, wire-token measured cost, governance constraints, multi-account key rotation, context-length preflight, RBAC, role-based access control, tamper-evident audit chain, OIDC gateway, enterprise security, P0-P7 program complete" />
+  <link rel="icon" type="image/png" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%236363f2'/%3E%3Ctext x='16' y='22' text-anchor='middle' fill='white' font-size='18' font-weight='bold' font-family='system-ui'%3EN%3C/text%3E%3C/svg%3E" />
+  <meta property="og:title" content="Agent-Nuvira — Multi-Agent AI Coding Assistant" />          <meta property="og:description" content="The open-source multi-agent AI coding assistant. Plan, write, review, test, verify, and publish code from one dashboard window or your terminal. 17+ providers. 17+ agents. 5,723 tests. 22-platform messaging gateway. GitLab + GitHub PR review built-in. RBAC, tamper-evident audit, OIDC gateway. No subscriptions. No telemetry." />
+  <meta property="og:image" content="https://www.agent-nuvira.com/assets/og-cover.webp" />
+  <meta property="og:image:width" content="900" />
+  <meta property="og:image:height" content="600" />
+  <meta property="og:url" content="https://www.agent-nuvira.com" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Agent-Nuvira — Multi-Agent AI Coding Assistant" />          <meta name="twitter:description" content="The open-source multi-agent AI coding assistant. One window: chat, plan, review diffs, run, ship. 17+ providers. 17+ agents. 5,723 tests. 22-platform messaging gateway. GitLab + GitHub PR review. Enterprise hardening (RBAC, audit, OIDC). From your terminal." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <!-- Navigation -->
+  <nav class="navbar" id="navbar">
+    <div class="container nav-inner">
+      <a href="#" class="nav-logo">
+        <span class="logo-icon">◆</span>
+        <span class="logo-text">Agent-<strong>Nuvira</strong></span>
+      </a>
+      <div class="nav-links" id="navLinks">
+        <a href="#features" class="nav-link">Features</a>
+        <a href="#pipeline" class="nav-link">Pipeline</a>
+        <a href="#providers" class="nav-link">Providers</a>
+        <a href="#quickstart" class="nav-link">Quick Start</a>
+        <a href="#extensions" class="nav-link">Extensions</a>
+        <a href="#architecture" class="nav-link">Roadmap</a>
+        <a href="docs.html" class="nav-link">Docs</a>
+        <div class="nav-ctas">
+          <a href="https://github.com/imdheerajKube/agent-nuvira-documentation" target="_blank" rel="noopener" class="btn btn-ghost btn-sm">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+            GitHub
+          </a>
+          <a href="#quickstart" class="btn btn-primary btn-sm">Install</a>
+        </div>
+      </div>
+      <button class="nav-toggle" id="navToggle" aria-label="Toggle navigation">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="hero-bg"></div>
+    <div class="hero-particles" id="particles"></div>
+    <div class="container hero-inner">
+      <div class="hero-content">
+        <div class="hero-badge">
+          <span class="badge-dot"></span>
+          Open Source · MIT License · v3.3.0
+        </div>
+        <h1 class="hero-title">
+          AI That Codes.<br />
+          <span class="gradient-text">22+ Providers. 17+ Agents.</span><br />
+          Dashboard + CLI.
+        </h1>
+        <p class="hero-subtitle">
+          The open-source, multi-agent AI coding assistant with a <strong>visual dashboard</strong> and <strong>powerful CLI</strong>.
+          Specialized agents plan, write, review, test, and ship code — learning from every run.
+          <strong>No subscriptions. No telemetry. Your models, your way.</strong>
+        </p>
+        <div class="hero-ctas">
+          <a href="#quickstart" class="btn btn-primary btn-lg">
+            Get Started Free
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+          </a>
+          <a href="https://github.com/imdheerajKube/agent-nuvira-documentation" target="_blank" rel="noopener" class="btn btn-outline btn-lg">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+            View on GitHub
+          </a>
+        </div>
+        <div class="hero-metrics">
+          <div class="metric">
+            <span class="metric-value">11,341</span>
+            <span class="metric-label">Peak Installs / Week</span>
+          </div>
+          <div class="metric">
+            <span class="metric-value">45,635</span>
+            <span class="metric-label">Total npm Installs</span>
+          </div>
+          <div class="metric">
+            <span class="metric-value">17</span>
+            <span class="metric-label">Agent Roles</span>
+          </div>
+          <div class="metric">
+            <span class="metric-value">17+</span>
+            <span class="metric-label">AI Providers</span>
+          </div>
+          <div class="metric">
+            <span class="metric-value">5,723</span>
+            <span class="metric-label">Tests Passing</span>
+          </div>
+          <div class="metric">
+            <span class="metric-value">22</span>
+            <span class="metric-label">Gateway Platforms</span>
+          </div>
+          <div class="metric">
+            <span class="metric-value">100%</span>
+            <span class="metric-label">Open Source</span>
+          </div>
+        </div>
+      </div>
+      <div class="hero-visual">
+        <div class="hero-image-wrapper">
+          <picture>
+            <source srcset="assets/hero-sm.webp" media="(max-width: 480px)" />
+            <source srcset="assets/hero.webp" type="image/webp" />
+            <img src="assets/hero.png" alt="Agent-Nuvira AI Coding Assistant" class="hero-image" loading="eager" />
+          </picture>
+          <div class="hero-image-glow"></div>
+        </div>
+        <div class="terminal-window">
+          <div class="terminal-header">
+            <span class="terminal-dot red"></span>
+            <span class="terminal-dot yellow"></span>
+            <span class="terminal-dot green"></span>
+            <span class="terminal-title">agent-nuvira dashboard + CLI</span>
+          </div>
+          <div class="terminal-body">
+            <span class="prompt">$</span> <span class="cmd">agent-nuvira execute "add JWT authentication" --verbose</span>
+            <div class="terminal-output">
+              <span class="log info">🔍 Planner analyzing goal...</span>
+              <span class="log info">📁 Context Gatherer scanning codebase...</span>
+              <span class="log success">✅ Writer implemented auth middleware</span>
+              <span class="log info">👀 Reviewer validating changes...</span>
+              <span class="log success">✅ All 5,723 tests passed</span>
+              <span class="log info">🔒 VerifyModule running security scan...</span>
+              <span class="log success">✅ No security issues found</span>
+              <span class="log success">🚀 Changes committed to feature/auth</span>
+            </div>
+            <span class="blinking-cursor">▊</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Live Demo Section -->
+  <section class="live-demo" id="demo">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag">Live Demo</span>
+        <h2 class="section-title">See Agent-Nuvira <span class="gradient-text">in Action</span></h2>
+        <p class="section-desc">Watch how the multi-agent pipeline orchestrates specialized AI agents to complete complex coding tasks — all from a single terminal command.</p>
+      </div>
+      <div class="demo-wrapper">
+        <div class="demo-image-frame">
+          <div class="demo-image-glow"></div>
+          <div class="demo-image-borders">
+            <span></span><span></span><span></span><span></span>
+          </div>
+          <img src="assets/agent-nuvira-hero.png" alt="Agent-Nuvira AI Coding Assistant Live Demo" class="demo-image" loading="lazy" />
+          <div class="demo-image-overlay">
+            <div class="demo-badge">
+              <span class="demo-badge-dot"></span>
+              Live Preview
+            </div>
+          </div>
+        </div>
+        <div class="demo-features">
+          <div class="demo-feature">
+            <div class="demo-feature-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <div class="demo-feature-text">
+              <h4>Multi-Agent Orchestration</h4>
+              <p>Planner → Gatherer → Writer → Reviewer → Tester — all working together autonomously.</p>
+            </div>
+          </div>
+          <div class="demo-feature">
+            <div class="demo-feature-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <div class="demo-feature-text">
+              <h4>Provider Flexibility</h4>
+              <p>Switch between Groq, Gemini, OpenRouter, NVIDIA NIM, or local models mid-session.</p>
+            </div>
+          </div>
+          <div class="demo-feature">
+            <div class="demo-feature-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <div class="demo-feature-text">
+              <h4>Real-Time Progress</h4>
+              <p>Watch each agent execute in real-time with streaming output and live status updates.</p>
+            </div>
+          </div>
+          <div class="demo-feature">
+            <div class="demo-feature-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <div class="demo-feature-text">
+              <h4>Context-Aware Edits</h4>
+              <p>Agents understand your full codebase context before making any changes.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Why Agent-Nuvira? Section -->
+  <section class="features" id="why">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag">The Core Edge</span>
+        <h2 class="section-title">Why <span class="gradient-text">Agent-Nuvira?</span></h2>
+        <p class="section-desc">Not another chat bot. Not a single-prompt box. A full development team in your terminal — routing across 17+ providers, learning from every run, and stretching your free quotas further than any other AI coding assistant.</p>
+      </div>
+      <div class="features-grid">
+        <div class="feature-card" data-delay="0">
+          <div class="feature-icon gateway">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M12 2a10 10 0 0 1 0 20"/></svg>
+          </div>
+          <h3>22-Platform Messaging Gateway</h3>
+          <p>Run the agent from <strong>Telegram, Discord, Slack, WhatsApp</strong> (Cloud API or your own number via the Baileys bridge), <strong>Email, Signal, DingTalk, Feishu, WeCom, Mattermost, Matrix, Webhook, BlueBubbles, ntfy, Teams, Google Chat, Weixin, SMS/Twilio, IRC (two-way), SimpleX (two-way), and Home Assistant</strong> — 22 platforms, each opt-in via standard per-platform env vars, with zero SDK dependencies. Guaranteed delivery ledger with auto-retry, channel aliases, and a dashboard send-test.</p>
+        </div>
+        <div class="feature-card" data-delay="100">
+          <div class="feature-icon providers">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+          </div>
+          <h3>Smart Multi-Provider Token Routing</h3>
+          <p>Stop paying flat premium fees. Every sub-task is routed across <strong>17+ providers</strong> — local models (Ollama, LM Studio), free tiers (Groq, Google Gemini), and high-capacity clouds (OpenAI, Anthropic, Mistral, NVIDIA NIM, OpenRouter, Azure & more) — maximizing free-use limits and paying only when complexity demands it.</p>
+        </div>
+        <div class="feature-card" data-delay="100">
+          <div class="feature-icon agents">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          </div>
+          <h3>17 Specialized Agent Swarm</h3>
+          <p>No generic single-prompt boxes. Your goal becomes a DAG of tasks handled by 17 dedicated agents — Planner, Context-Gatherer, Writer, Reviewer, Runner, Tester, Debugger, Security Auditor, Git/GitLab, Package, PR Review, Issue Triage and more — working in parallel.</p>
+        </div>
+        <div class="feature-card" data-delay="200">
+          <div class="feature-icon learning">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          </div>
+          <h3>Learning Router That Gets Better</h3>
+          <p>A Thompson-sampling bandit learns per provider × complexity bucket from <em>real</em> outcomes (cost-adjusted rewards), with hard constraints, regex routing rules, uncertainty escalation on cold starts, and promotion gates that only keep router changes that measurably improve quality. A Model Availability Registry learns from <strong>real usage</strong> too — every chat/execute/plan/edit call writes which provider × model it verified or killed, so dead providers are skipped predictively (never a wasted first call) and a recovered provider is re-admitted automatically — with <code>buff models unblock &lt;provider&gt;</code> as a manual escape hatch that demotes the block, clears quota parks, and re-probes the live API to re-learn the truth. Inspect it with <code>buff models status --verbose</code> or the dashboard's per-action timeline — scrub across days (drag, click, range slider, or ▶ play) to replay what each action verified or killed on any given day. The VS Code extension attributes its own usage (<code>ide-chat</code> / <code>ide-inline</code> / <code>ide-execute</code>) so IDE-driven calls feed the same registry.</p>
+        </div>
+        <div class="feature-card" data-delay="300">
+          <div class="feature-icon offline">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0"/><path d="M12 12m-3 0a3 3 0 1 0 6 0"/><path d="M12 12v9"/></svg>
+          </div>
+          <h3>Local FAISS Context Indexing</h3>
+          <p>Blazing-fast, private, semantic code search backed by a <strong>native FAISS vector store</strong> (pure-JS fallback) that strictly respects your <code>.gitignore</code>. Large contexts shrink to the top-k relevant chunks — saving tokens so free quotas stretch further.</p>
+        </div>
+        <div class="feature-card" data-delay="400">
+          <div class="feature-icon plugin">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+          </div>
+          <h3>First-Class MCP Integration</h3>
+          <p>Seamlessly connect your codebase to external enterprise tools — Jira, Slack, PostgreSQL, GitHub Issues, file systems — using standard Model Context Protocol servers with SSE transport.</p>
+        </div>
+        <div class="feature-card" data-delay="500">
+          <div class="feature-icon agents">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          </div>
+          <h3>Real-Time Team Collaboration</h3>
+          <p>Share context, synchronized vector indices, custom agents, and review pipelines across your engineering team via Git-synced config and memory — everyone ships from the same learned knowledge.</p>
+        </div>
+        <div class="feature-card" data-delay="600">
+          <div class="feature-icon learning">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+          </div>
+          <h3>Quota Ledger + Self-Healing Failover</h3>
+          <p>A central quota ledger tracks tokens per provider × model with calendar-aware resets, parks exhausted providers until free tier returns, and auto-fails-over mid-session when a key expires or rate-limit hits — never a stuck session, never a quota error thrown at you. <strong>Parks are per MODEL, not per provider</strong> (v2.7.3): a 429 rests that one model while its siblings keep serving, escalating to a provider-wide park only when several distinct models of the same provider are rate-limited — the honest signal for a genuinely shared limit. A model that once hiccuped is no longer penalized forever either: every success heals its error rate and a lapsed park re-admits it automatically. <strong>Rate-limit recovery is fully automatic</strong>: a transient blip is silently waited out and retried, while an exhausted or storming provider (2+ hits in a row) silently hands the task to the router's next healthy provider mid-build — no prompts, no grinding the same quota, no build interrupted. <strong>Key hygiene keeps the config honest</strong>: a provider with 3 consecutive 401/403 auth failures has its dead key auto-cleared from your config (or you're told exactly which env var to fix) with a clear error, and stale local models that were deleted (<code>ollama rm</code>) are pruned on the next <code>buff models refresh</code> — so the router never wastes a call on credentials or models that no longer exist.</p>
+        </div>
+        <div class="feature-card" data-delay="700">
+          <div class="feature-icon privacy">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          </div>
+          <h3>No Server. No Telemetry. No Subscriptions.</h3>
+          <p>Everything runs locally on your machine. Free (MIT), BYO API keys, direct-to-provider connections, fully offline-capable — no intermediary server, no data leaving your machine without your control.</p>
+        </div>
+        <div class="feature-card" data-delay="800">
+          <div class="feature-icon learning">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+          </div>
+          <h3>Uncertainty-Driven Escalation</h3>
+          <p>No coin-flip winners. When the bandit's top pick is a cold start with no learned data, routing escalates to the next-ranked provider that has real outcome data at a <strong>≥55% win-rate floor</strong> — so unproven models never get your critical tasks on a gamble.</p>
+        </div>
+        <div class="feature-card" data-delay="900">
+          <div class="feature-icon learning">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+          </div>
+          <h3>Per-Model Learning, Promotion-Gated</h3>
+          <p>Every concrete model tracks its own Beta prior — <code>llama-3.3-70b-versatile</code> is learned separately from <code>openai/gpt-oss-20b</code> on the same provider. And nothing is promoted blindly: an <strong>A/B gate</strong> only switches the router to bandit decisions when they measurably beat the heuristic — quality up, cost and latency flat.</p>
+        </div>
+        <div class="feature-card" data-delay="1000">
+          <div class="feature-icon plugin">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
+          </div>
+          <h3>Routing Rules + Hard Constraints</h3>
+          <p>Force any task pattern to a specific provider/model with <strong>regex or string rules</strong> (first match wins). Set hard floors like <code>routing.maxCostUsd</code>, <code>routing.minSpeed</code>, and <code>routing.minReasoning</code> — violating providers are eliminated outright, with graceful fallback when constraints would remove everything.</p>
+        </div>
+        <div class="feature-card" data-delay="1100">
+          <div class="feature-icon privacy">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12A10 10 0 1 1 12 2"/><path d="M22 2 12 12"/><path d="M22 2v6"/><path d="M16 12a4 4 0 1 1-8 0 4 4 0 0 1 8 0z"/></svg>
+          </div>
+          <h3>Credential-Aware + Free/Local-First Gate</h3>
+          <p>Auto routing <strong>never picks a provider without configured credentials</strong> — it can't. A free/local-first gate keeps paid models out of trivial-to-moderate work (complex and critical tasks may still reach high-capacity clouds), so your budget is spent only where reasoning actually matters.</p>
+        </div>
+        <div class="feature-card" data-delay="1200">
+          <div class="feature-icon learning">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a10 10 0 1 0 10 10"/><path d="M12 6v6l4 2"/><path d="M22 12h-4l3-3 3 3z"/></svg>
+          </div>
+          <h3>Capability-Aware Scoring (🎯 fit)</h3>
+          <p>Every task type knows what it needs — <code>plan</code> wants reasoning, quick edits want speed, code review wants code + reasoning. Each candidate is matched against those requirements (<strong>🎯 fit N%</strong> in <code>models explain</code>), nudging equally-scored providers toward the one whose strengths actually fit the job. Tagged by real capability profile, clamped so it never overturns a dimension-weight advantage, and reversible via <code>routing.capabilityFit</code> (default ON).</p>
+        </div>
+        <div class="feature-card" data-delay="1300">
+          <div class="feature-icon providers">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 2v20l16-4V2z"/><path d="M4 12h16"/><path d="M8 6.5l2.5 1.5L8 9.5z"/></svg>
+          </div>
+          <h3>Wire-Token Measured Costs (📏 measured)</h3>
+          <p>Routing no longer guesses on token counts. OpenAI-compatible providers report their real <code>usage</code> (response body + final SSE chunk), and the router records <strong>exact input/output tokens</strong> per model (EMA) — cost scoring then uses <strong>📏 measured</strong> tokens instead of the typical 2,000/500 estimate whenever real usage exists (<code>costSource: measured | estimated</code> per ranked provider). The dashboard splits spend into 📏 measured vs 📐 estimated, per call and per provider.</p>
+        </div>
+        <div class="feature-card" data-delay="1400">
+          <div class="feature-icon privacy">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          </div>
+          <h3>Governance Constraints (admin policy)</h3>
+          <p>Set real admin policy with <code>routing.governance</code>: provider/model allow &amp; deny lists, an admin per-call max-cost cap (stricter of admin vs per-call wins), and a <strong>PII-domain block</strong> — tasks matching your <code>piiPatterns</code> are only served by providers with the privacy floor you set (default local-only). Enforcement is a <strong>hard elimination</strong>, never a score nudge — and when policy eliminates every candidate, the router refuses to serve a violator with a full <code>governanceBlocked</code> audit trail (<code>PIIPolicyError</code> / <code>GovernancePolicyError</code>).</p>
+        </div>
+        <div class="feature-card" data-delay="1500">
+          <div class="feature-icon offline">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/><path d="M8 2h8M9 22h6"/></svg>
+          </div>
+          <h3>Context-Length Preflight (⏳ ctx)</h3>
+          <p>Before picking, the router scores each provider's input window against your task's estimated prompt size (<code>routing.contextFit</code>, default ON). Since <strong>v1.60.x</strong> those windows are <strong>live</strong> — the probe records each provider's advertised context length (Ollama <code>/api/tags</code> + <code>/api/show</code>, OpenRouter <code>/models</code>, Gemini <code>inputTokenLimit</code>, NIM <code>max_model_len</code>) into the registry, so preflight uses the real spec, not a static estimate. Chat passes the <strong>real</strong> conversation length; plan &amp; execute pass real per-task payload estimates. Soft and estimation-only — normal-size tasks are untouched, and even an over-window prompt only caps the penalty at 35% (models can exceed nominal windows). A 500K-token workspace now routes toward big-window providers automatically — see <strong>⏳ ctx N%</strong> chips in <code>models explain</code>.</p>
+          <p>Those windows are now <strong>used</strong>, not merely scored against (v3.0.0): the tool-loop thread budget and the writer/edit context caps scale with the model's real window, so a large-window (1M-token) model keeps its whole window instead of being trimmed to one fixed default. Conservative by construction — budgets are only ever <em>raised</em>, an unknown or small window leaves the default untouched, and a small model never gets over-sent.</p>
+        </div>
+        <div class="feature-card" data-delay="1600">
+          <div class="feature-icon learning">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3h5v5M21 3l-7 7M8 21H3v-5M3 21l7-7"/></svg>
+          </div>
+          <h3>Multi-Account Key Rotation (🔑 key#N)</h3>
+          <p>One provider, many keys. A provider can carry <strong>multiple API keys</strong> (<code>apiKeys[]</code>), and failover rotates through every non-parked key <em>before</em> switching providers — a quota-exhausted secondary account is parked (FNV fingerprint, raw keys never persisted) and the next key is tried. Parked accounts are skipped predictively on the next run and cleared by <code>releaseAccount</code> / <code>buff models unblock</code>. Rotation is logged (<code>🔑 key#N …</code>) and proven by a hermetic E2E test driving real adapters against a mock gateway.</p>
+        </div>
+        <div class="feature-card" data-delay="1700">
+          <div class="feature-icon privacy">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/><path d="M12 14v3"/></svg>
+          </div>
+          <h3>Role-Based Access Control (RBAC)</h3>
+          <p>Enterprise-grade authorization over the admin surface: <code>buff admin role add/remove/list</code> + <code>buff admin whoami</code> assign <strong>admin / operator / viewer</strong> roles with a scoped permission matrix (policy writes, role management, unblock). Legacy single-user mode stays fully permissive until roles are assigned, a misconfigured <code>rbac.json</code> logs a warning instead of silently downgrading, and an OIDC adapter interface is the token-identity seam for SSO. The dashboard mirrors it in a 🔐 RBAC Identity card.</p>
+        </div>
+        <div class="feature-card" data-delay="1800">
+          <div class="feature-icon learning">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a10 10 0 1 0 10 10"/><path d="M12 6v6l4 2"/><path d="M22 12h-4l3-3 3 3z"/></svg>
+          </div>
+          <h3>Tamper-Evident Audit Chain</h3>
+          <p>Every action lands in a <strong>SHA-256 hash-chained audit log</strong> (<code>buff audit verify/export</code>) — each record's hash includes the previous one, so a single edited line breaks the chain and <code>doctor --enterprise</code> flags the exact tamper point. CEF/SIEM export feeds your security pipeline, and a secret-redaction scrubber wired into every logger + audit writer guarantees nothing sensitive is ever persisted.</p>
+        </div>
+        <div class="feature-card" data-delay="1900">
+          <div class="feature-icon providers">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+          </div>
+          <h3>OIDC-Verified Nuvira Gateway</h3>
+          <p>Turn your federation server into a <strong>token-verified gateway</strong>: <code>buff federation start --auth oidc --oidc-public-key &lt;pem&gt;</code> makes the handshake an RS256-JWT bearer check (sub/exp/issuer/audience enforced by a dependency-free adapter), with the PEM path persisted for daemon restart. Secret-mode interop is unchanged, and <code>buff nuvira serve</code> exposes the same decision layer as a headless OpenAI-compatible endpoint — RBAC, audit, and governance all gate what the gateway will do.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features Section -->
+  <section class="features" id="features">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag">Features</span>
+        <h2 class="section-title">More Than a Chat Bot.<br />A <span class="gradient-text">Full Development Team</span> in Your Terminal.</h2>
+        <p class="section-desc">Agent-Nuvira isn't just another AI assistant — it's an autonomous pipeline of specialized AI agents that work together to ship code.</p>
+      </div>
+      <div class="features-grid">
+        <div class="feature-card" data-delay="0">
+          <div class="feature-icon agents">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          </div>
+          <h3>Multi-Agent Pipeline</h3>
+          <p>17+ specialized agents — Planner, Writer, Reviewer, Tester, Debugger, GitLab Agent, PR Review Agent, and more — orchestrated to complete complex goals autonomously.</p>
+        </div>
+        <div class="feature-card" data-delay="100">
+          <div class="feature-icon providers">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+          </div>
+          <h3>17+ AI Providers</h3>
+          <p>Connect to Groq, NVIDIA NIM, Google Gemini, OpenRouter (200+ models), AWS Bedrock, Azure OpenAI, DeepSeek, or run locally with Ollama — all through one unified CLI. 5 built-in, 12+ configurable. Or let the Auto router pick the best one per task.</p>
+        </div>
+        <div class="feature-card" data-delay="200">
+          <div class="feature-icon offline">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0"/><path d="M12 12m-3 0a3 3 0 1 0 6 0"/><path d="M12 12v9"/></svg>
+          </div>
+          <h3>Fully Offline-Capable</h3>
+          <p>Run entirely offline with local models via Ollama, HuggingFace, or GGML. No internet connection required.</p>
+        </div>
+        <div class="feature-card" data-delay="0">
+          <div class="feature-icon privacy">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          </div>
+          <h3>Privacy-First</h3>
+          <p>Your code connects directly to your chosen AI provider. No intermediary server, no telemetry, no data leaving your machine without your control.</p>
+        </div>
+        <div class="feature-card" data-delay="100">
+          <div class="feature-icon plugin">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+          </div>
+          <h3>Plugin System</h3>
+          <p>Extend the CLI with custom AI providers and agent types. A programmatic SDK lets you build and register new capabilities.</p>
+        </div>
+        <div class="feature-card" data-delay="200">
+          <div class="feature-icon learning">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          </div>
+          <h3>Self-Learning System</h3>
+          <p>Adaptive model routing, trajectory scoring, and pattern extraction that improve over time. The system learns which models perform best for which tasks.</p>
+        </div>
+        <div class="feature-card" data-delay="400">
+          <div class="feature-icon agents">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 6.77 5.07 5.07 0 0 0 19.91 3S18.73.65 15 2.48a13.38 13.38 0 0 0-7 0C4.27.65 3.09 3 3.09 3A5.07 5.07 0 0 0 3 6.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 7 20.13V22"/></svg>
+          </div>
+          <h3>Git & PR Integration</h3>
+          <p>Built-in GitLab REST API client and GitHub PR Review Agent. Create MRs, review PRs, post inline comments, run security scans on changed files — all from the terminal.</p>
+        </div>
+        <div class="feature-card" data-delay="500">
+          <div class="feature-icon providers">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          </div>
+          <h3>Real-Time Team Collaboration</h3>
+          <p>Share config, memory, and review pipelines across your team via Git-synced collaboration — plus the PR Review Agent checks changed files for security issues, style violations, and code quality, posting results directly on the PR.</p>
+        </div>
+        <div class="feature-card" data-delay="600">
+          <div class="feature-icon providers">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+          </div>
+          <h3>Auto Dependency Install</h3>
+          <p>Runner detects 11 project manifest types (npm, pip, bundler, cargo, go, composer, dart), installs missing dependencies on failed commands, and bootstrap-installs missing package managers — via brew, apt, winget, or rustup.</p>
+        </div>
+        <div class="feature-card" data-delay="700">
+          <div class="feature-icon learning">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+          </div>
+          <h3>Auto Model Routing</h3>
+          <p>Pick <strong>Auto</strong> and the agent picks the right model for the right task — a fast small model for quick edits, a frontier model for deep reasoning, local for private work. Since <strong>v1.60.0</strong> there are <strong>no hardcoded defaults</strong>: <code>auto</code> resolves at runtime to the best <em>available</em> provider for your keys + learned registry (verified → configured-with-key → zero-config local), and every unpinned model resolves to a registry-verified working model — explicit pins still win. Complexity-aware scoring across 5 dimensions: reasoning, speed, cost, privacy, reliability.</p>
+        </div>
+        <div class="feature-card" data-delay="800">
+          <div class="feature-icon providers">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          </div>
+          <h3>Real Provider Pricing</h3>
+          <p>Routing decisions use actual per-1K-token list pricing from each provider — free tiers count as $0 — so cost optimization reflects real-world spend, not static guesses.</p>
+        </div>
+        <div class="feature-card" data-delay="900">
+          <div class="feature-icon agents">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12h20M12 2v20"/><path d="M4.9 4.9l14.2 14.2M19.1 4.9L4.9 19.1"/></svg>
+          </div>
+          <h3>Benchmark-Driven Learning</h3>
+          <p>Decisions get sharper with use — real benchmark quality scores and per-agent best-model stats from your own runs are blended into every routing decision.</p>
+        </div>
+        <div class="feature-card" data-delay="1000">
+          <div class="feature-icon learning">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/><line x1="6" y1="15" x2="10" y2="15"/></svg>
+          </div>
+          <h3>Central Quota Ledger</h3>
+          <p>Tracks tokens/requests per provider × model with calendar-aware reset windows. Exhausted providers are <strong>parked</strong> until their free tier resets (auto re-enable, no timers), and Auto routing avoids them before a call is made. A free/local-first gate keeps paid models for complex work only — with a cost summary showing exactly how much you saved.</p>
+        </div>
+        <div class="feature-card" data-delay="1100">
+          <div class="feature-icon offline">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v3m0 12v3M3 12h3m12 0h3M5.6 5.6l2.1 2.1m8.6 8.6l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1"/></svg>
+          </div>
+          <h3>Checkpoint & Resume</h3>
+          <p>Crash, quota kill, or token expiry mid-pipeline no longer restarts the whole plan. <code>--checkpoint</code> saves a resume-able snapshot after every task batch; <code>--resume</code> continues from the first pending step — skipping completed steps and the planner entirely.</p>
+        </div>
+        <div class="feature-card" data-delay="1200">
+          <div class="feature-icon learning">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+          </div>
+          <h3>Vector Retrieval</h3>
+          <p>Large contexts are chunked, embedded locally (bge-small-en-v1.5, zero new deps) and reduced to the top-k semantically-relevant chunks before the LLM call — saving tokens so free quotas stretch further. Small contexts pass through untouched; any failure fails over to full context.</p>
+        </div>
+        <div class="feature-card" data-delay="1250">
+          <div class="feature-icon learning">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          </div>
+          <h3>Thompson-Sampling Bandit Routing</h3>
+          <p>Auto routing learns from real outcomes with a Thompson-sampling bandit per complexity bucket. Cold-start behaves deterministically; uncertainty escalation avoids coin-flip winners; per-model learning tracks which concrete model performs best; and a promotion gate A/B validates the bandit actually improves quality before promoting it.</p>
+        </div>
+        <div class="feature-card" data-delay="1350">
+          <div class="feature-icon learning">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          </div>
+          <h3>FAISS-Backed Vector Store</h3>
+          <p>Similarity search runs on a pluggable backend: real FAISS native bindings when built, a pure-JS IVF ANN otherwise, with an exact-cosine fallback that always works. Auto-selected per machine — <code>buff memory backend --check</code> shows which tier you're on. Same JSON format, zero data migration.</p>
+        </div>
+        <div class="feature-card" data-delay="1300">
+          <div class="feature-icon privacy">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M23 12a11 11 0 1 1-22 0 11 11 0 0 1 22 0z"/><path d="M12 8v4l2 2"/></svg>
+          </div>
+          <h3>Self-Healing Failover</h3>
+          <p>When a provider dies mid-session (expired key, exhausted quota, deprecated model), Auto mode automatically hops to the next-best provider — and an optional confirmation prompt keeps you in control of every swap. Every failover is recorded in a live timeline.</p>
+          <p>Failover is <strong>deep and shared</strong> (v2.7.3): CLI chat, the dashboard console, the messaging gateway, <code>execute</code> and the multi-agent orchestrator all walk the <em>same</em> candidate pool — several models per provider plus a reserve pool of credentialed-but-unverified providers — with the router's own pick pinned first, model-scoped exclusions (one failed model never costs you its healthy siblings), cross-pipeline failure memory, and a per-entry registry skip so parked models are avoided before the call, not after. “Reject only when nothing is left” holds even when every candidate looks unhealthy: excluded candidates are attempted last, never dropped.</p>
+          <p>Failover now reaches <strong>mid-turn</strong> too (v3.0.0): the single agentic loop engine behind <code>execute</code> and chat walks the same pool <em>between steps</em>, so a 429 on step 3 hands the rest of the turn to the next candidate instead of killing it — and every failure is written through the shared bookkeeping, so the failed model is parked and the next run routes around it. A <strong>pinned</strong> run (<code>--provider</code>) fails over as well: it walks the config-declared fallback chain, credential-filtered (an entry with no key never costs a connection timeout), with registry-parked fallbacks ordered last — derived lazily, so a healthy pinned run pays nothing. A failure that indicts the whole provider (a dead key) is surfaced rather than silently swapped, and a provider that keeps failing inside the rate-limit window is parked for the full window instead of retried into.</p>
+        </div>
+        <div class="feature-card" data-delay="1400">
+          <div class="feature-icon learning">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="10"/></svg>
+          </div>
+          <h3>No Silent Failures — The Reliability Stack</h3>
+          <p>Since <strong>v1.62.0</strong> the pipeline can't quietly skip work: a writer that returns unparseable output now <strong>fails the task</strong> so the repair engine escalates to a stronger model (a genuine "no changes needed" decline stays a no-op). A reviewer that blocks a change routes through a <strong>writer fix pass</strong> — the writer applies the review feedback, then the reviewer re-verifies as the gate. And when only a weak local model is available, you get a <strong>pre-flight warning</strong> before the pipeline burns minutes on a task likely to fail.</p>
+        </div>
+        <div class="feature-card" data-delay="1500">
+          <div class="feature-icon agents">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+          </div>
+          <h3><code>buff code-map</code> — Project Symbol Map</h3>
+          <p>One command maps your whole project: <code>buff code-map</code> lists every function, class, and method with its 1-based source line — <code>--json</code> for machine output, multi-language via the AST engine. No native parser dependencies, works offline — and the engine fix behind it recovered top-level functions that were silently dropped from the structure map (which also sharpened the edit pipeline).</p>
+        </div>
+        <div class="feature-card" data-delay="1600">
+          <div class="feature-icon plugin">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          </div>
+          <h3>Scheduled Jobs (<code>buff admin cron</code>)</h3>
+          <p>Run any pipeline tool on a schedule: <code>buff admin cron add "0 9 * * *" build --args '...'</code> validates the 5-field cron expression and the tool's argument schema <em>at add time</em> — a typo surfaces immediately, not at 3am. Jobs persist to disk, are RBAC-gated (<code>cron.manage</code>), support <code>--dry-run</code> (validate + next run without executing), and can deliver results to a gateway channel.</p>
+        </div>
+        <div class="feature-card" data-delay="1700">
+          <div class="feature-icon learning">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-9-9"/><path d="M21 3l-9 9"/><path d="M21 3v6"/><path d="M21 9h-6"/></svg>
+          </div>
+          <h3>Session Recall — Memory Across Runs</h3>
+          <p>Chat doesn't start from zero. Each session auto-recalls <strong>this project's</strong> past sessions, learned facts, and your last checkpoint — surfaced as a recall card before the answer — so "continue where we left off" and cross-session context work out of the box, scoped per project with temporal filters.</p>
+        </div>
+        <div class="feature-card" data-delay="1800">
+          <div class="feature-icon agents">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          </div>
+          <h3>Model-Decides Routing + Sub-Agent Delegation</h3>
+          <p>Since the revamp, <strong>every request enters the tool loop</strong> — the model itself decides whether a task is chat, a plan, an edit, a build, a test, or something to delegate. The orchestrator can spawn <strong>isolated sub-agents in parallel</strong> (per-subagent timeout + kill), each with its own fresh context, then merge their results — the model's own judgment, not a menu, drives what happens next.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Pipeline Section -->
+  <section class="pipeline" id="pipeline">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag">How It Works</span>
+        <h2 class="section-title">The <span class="gradient-text">Multi-Agent Pipeline</span></h2>
+        <p class="section-desc">A goal goes in. Code comes out. Here's what happens in between — including GitLab integration and automated PR review from v1.32.0.</p>
+      </div>
+      <div class="pipeline-flow">
+        <div class="pipeline-input">
+          <span class="pipeline-arrow">$ agent-nuvira execute &lt;goal&gt;</span>
+        </div>
+        <div class="pipeline-agents">
+          <div class="pipeline-agent" style="--order: 1">
+            <div class="agent-node planner">
+              <span class="agent-emoji">🧠</span>
+              <span class="agent-name">Planner</span>
+            </div>
+            <span class="agent-desc">Analyzes goal, creates task plan</span>
+            <div class="agent-connector"></div>
+          </div>
+          <div class="pipeline-agent" style="--order: 2">
+            <div class="agent-node gatherer">
+              <span class="agent-emoji">📁</span>
+              <span class="agent-name">Gatherer</span>
+            </div>
+            <span class="agent-desc">Scans codebase for context</span>
+            <div class="agent-connector"></div>
+          </div>
+          <div class="pipeline-agent" style="--order: 3">
+            <div class="agent-node writer">
+              <span class="agent-emoji">✍️</span>
+              <span class="agent-name">Writer</span>
+            </div>
+            <span class="agent-desc">Implements code changes</span>
+            <div class="agent-connector"></div>
+          </div>
+          <div class="pipeline-agent" style="--order: 4">
+            <div class="agent-node reviewer">
+              <span class="agent-emoji">👀</span>
+              <span class="agent-name">Reviewer</span>
+            </div>
+            <span class="agent-desc">Validates for bugs & style</span>
+            <div class="agent-connector"></div>
+          </div>
+          <div class="pipeline-agent" style="--order: 5">
+            <div class="agent-node tester">
+              <span class="agent-emoji">🧪</span>
+              <span class="agent-name">Tester</span>
+            </div>
+            <span class="agent-desc">Runs tests in sandbox</span>
+            <div class="agent-connector"></div>
+          </div>
+          <div class="pipeline-agent" style="--order: 6">
+            <div class="agent-node verify-node">
+              <span class="agent-emoji">✅</span>
+              <span class="agent-name">Verify</span>
+            </div>
+            <span class="agent-desc">Security scan + quality checks</span>
+            <div class="agent-connector"></div>
+          </div>
+          <div class="pipeline-agent" style="--order: 7">
+            <div class="agent-node git">
+              <span class="agent-emoji">🚀</span>
+              <span class="agent-name">Ship</span>
+            </div>
+            <span class="agent-desc">Commits & publishes</span>
+          </div>
+        </div>
+      </div>
+      <div class="pipeline-visual">
+        <div class="pipeline-image-frame">
+          <img src="assets/pipeline-flow.svg" alt="Agent-Nuvira Multi-Agent Pipeline Flow" class="pipeline-image" loading="lazy" />
+        </div>
+      </div>
+      <div class="pipeline-features">
+        <div class="pipeline-feat">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#63f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          <span>Parallel execution where possible</span>
+        </div>
+        <div class="pipeline-feat">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#63f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          <span>Per-agent model configuration</span>
+        </div>
+        <div class="pipeline-feat">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#63f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          <span>Automatic error recovery</span>
+        </div>
+        <div class="pipeline-feat">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#63f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          <span>Dry-run preview mode</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Providers Section -->
+  <section class="providers" id="providers">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag">Providers</span>
+        <h2 class="section-title">Choose Your <span class="gradient-text">AI Engine</span></h2>
+        <p class="section-desc">Connect to any provider — or run locally. Switch between them per command or mid-session.</p>
+      </div>
+      <div class="providers-visual">
+        <img src="assets/provider-showcase.svg" alt="Agent-Nuvira AI Provider Options" class="providers-image" loading="lazy" />
+      </div>
+      <div class="providers-grid">
+        <div class="provider-card groq">
+          <div class="provider-header">
+            <span class="provider-color groq"></span>
+            <h3>Groq</h3>
+          </div>
+          <p class="provider-desc">Blazing-fast LPU inference for open-source models. Free tier available with generous rate limits.</p>
+          <div class="provider-models">
+            <span class="model-tag">Llama 3.3</span>
+            <span class="model-tag">Mixtral</span>
+            <span class="model-tag">Gemma 2</span>
+            <span class="model-tag">DeepSeek</span>
+          </div>
+          <a href="https://console.groq.com" target="_blank" rel="noopener" class="provider-link">Get API Key →</a>
+        </div>
+        <div class="provider-card nvidia">
+          <div class="provider-header">
+            <span class="provider-color nvidia"></span>
+            <h3>NVIDIA NIM</h3>
+          </div>
+          <p class="provider-desc">Hosted API access to 121+ models. Free tier with rate limits. Also supports self-hosted NIM deployments.</p>
+          <div class="provider-models">
+            <span class="model-tag">Llama 3.1</span>
+            <span class="model-tag">DeepSeek</span>
+            <span class="model-tag">Mistral</span>
+            <span class="model-tag">120+ more</span>
+          </div>
+          <a href="https://build.nvidia.com" target="_blank" rel="noopener" class="provider-link">Get API Key →</a>
+        </div>
+        <div class="provider-card gemini">
+          <div class="provider-header">
+            <span class="provider-color gemini"></span>
+            <h3>Google Gemini</h3>
+          </div>
+          <p class="provider-desc">Google's latest models with a generous free tier — 60 requests/minute at no cost.</p>
+          <div class="provider-models">
+            <span class="model-tag">Gemini 2.0 Flash</span>
+            <span class="model-tag">Gemini Pro</span>
+          </div>
+          <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener" class="provider-link">Get API Key →</a>
+        </div>
+        <div class="provider-card openrouter">
+          <div class="provider-header">
+            <span class="provider-color openrouter"></span>
+            <h3>OpenRouter</h3>
+          </div>
+          <p class="provider-desc">Access 200+ models from OpenAI, Anthropic, Google, Meta, and more — all through one API.</p>
+          <div class="provider-models">
+            <span class="model-tag">GPT-4o</span>
+            <span class="model-tag">Claude 3</span>
+            <span class="model-tag">Gemini</span>
+            <span class="model-tag">200+ total</span>
+          </div>
+          <a href="https://openrouter.ai/keys" target="_blank" rel="noopener" class="provider-link">Get API Key →</a>
+        </div>
+        <div class="provider-card local">
+          <div class="provider-header">
+            <span class="provider-color local"></span>
+            <h3>Local (Ollama)</h3>
+          </div>
+          <p class="provider-desc">Run models entirely on your machine. Ollama, HuggingFace Transformers, or GGML — completely free and offline.</p>
+          <div class="provider-models">
+            <span class="model-tag">Llama 2</span>
+            <span class="model-tag">Mistral</span>
+            <span class="model-tag">Phi-2</span>
+            <span class="model-tag">Any GGUF</span>
+          </div>
+          <a href="https://ollama.ai" target="_blank" rel="noopener" class="provider-link">Get Ollama →</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Quick Start Section -->
+  <section class="quickstart" id="quickstart">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag">Get Started</span>
+        <h2 class="section-title">Install & Go in <span class="gradient-text">Under a Minute</span></h2>
+        <p class="section-desc">One command to install. One API key to get started. Zero configuration required.</p>
+      </div>
+      <div class="quickstart-grid">
+        <div class="quickstart-step">
+          <div class="step-number">1</div>
+          <div class="step-content">
+            <h3>Install</h3>
+            <p>Install globally via npm — works on macOS, Linux, and Windows.</p>
+            <div class="code-block">
+              <button class="copy-btn" data-copy="npm install -g agent-nuvira" aria-label="Copy to clipboard">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+              </button>
+              <code><span class="prompt">$</span> npm install -g agent-nuvira</code>
+            </div>
+          </div>
+        </div>
+        <div class="quickstart-step">
+          <div class="step-number">2</div>
+          <div class="step-content">
+            <h3>Set Your API Key</h3>
+            <p>Pick a provider and set your key as an environment variable.</p>
+            <div class="code-block">
+              <button class="copy-btn" data-copy="export GROQ_API_KEY='gsk_your_key_here'" aria-label="Copy to clipboard">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+              </button>
+              <code><span class="prompt">$</span> <span class="hljs-built_in">export</span> GROQ_API_KEY=<span class="hljs-string">'gsk_your_key_here'</span></code>
+            </div>
+          </div>
+        </div>
+        <div class="quickstart-step">
+          <div class="step-number">3</div>
+          <div class="step-content">
+            <h3>Start Coding</h3>
+            <p>Chat, edit files, or run the full multi-agent pipeline.</p>
+            <div class="code-block">
+              <button class="copy-btn" data-copy="agent-nuvira execute 'add input validation to API routes' --verbose" aria-label="Copy to clipboard">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+              </button>
+              <code><span class="prompt">$</span> agent-nuvira execute <span class="hljs-string">'add input validation to API routes'</span> --verbose</code>
+            </div>
+          </div>
+        </div>
+        <div class="quickstart-step">
+          <div class="step-number">4</div>
+          <div class="step-content">
+            <h3>More Commands</h3>
+            <p>Explore everything Agent-Nuvira can do.</p>
+            <div class="code-block">
+              <button class="copy-btn" data-copy="agent-nuvira --help" aria-label="Copy to clipboard">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+              </button>
+              <code><span class="prompt">$</span> agent-nuvira --help</code>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="quickstart-cta">
+        <p>Want to dig deeper? Read the full documentation.</p>
+        <a href="docs.html" class="btn btn-primary">
+          Read the Docs
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Extensions Section -->
+  <section class="extensions" id="extensions">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag">Extensions</span>
+        <h2 class="section-title">Your Editor, <span class="gradient-text">Amplified</span></h2>
+        <p class="section-desc">Agent-Nuvira's multi-agent pipeline is available wherever you code.</p>
+      </div>
+      <div class="extensions-visual">
+        <img src="assets/dashboard-mockup.svg" alt="Agent-Nuvira Web Dashboard" class="extensions-image" loading="lazy" />
+      </div>
+      <div class="extensions-grid">
+        <div class="extension-card">
+          <div class="extension-icon">
+            <svg width="40" height="40" viewBox="0 0 100 100" fill="none">
+              <rect width="100" height="100" rx="15" fill="#007ACC"/>
+              <path d="M80 20L45 55l15 15 20-20V20z" fill="white" opacity="0.9"/>
+              <path d="M20 80l35-35-15-15-20 20v30z" fill="white" opacity="0.9"/>
+              <path d="M55 70l10 10h15V65L55 70z" fill="white" opacity="0.6"/>
+            </svg>
+          </div>
+          <h3>VS Code Extension — Plus the Full CLI Agent</h3>
+          <p>This isn't just an editor plugin — it's the complete <strong>agent-nuvira development agent</strong> that also runs from your terminal. Inline suggestions, agent chat panel, diff viewer, and all 17 agents work in VS Code <em>and</em> as a full CLI: <code>agent-nuvira execute "<goal>"</code> runs the entire multi-agent pipeline from any shell, CI job, or editor.</p>
+          <a href="https://marketplace.visualstudio.com/items?itemName=agent-nuvira" target="_blank" rel="noopener" class="btn btn-ghost btn-sm">
+            Install from Marketplace →
+          </a>
+        </div>
+        <div class="extension-card">
+          <div class="extension-icon sdk">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+          </div>
+          <h3>Agent SDK</h3>
+          <p>Build custom agents with the <code>@agent-nuvira/sdk</code> package. Extend the pipeline with your own specialized agent roles.</p>
+          <div class="code-block code-block-sm">
+            <code><span class="prompt">$</span> npm install @agent-nuvira/sdk</code>
+          </div>
+        </div>
+        <div class="extension-card">
+          <div class="extension-icon dashboard">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+          </div>
+          <h3>Web Dashboard</h3>
+          <p>Monitor provider health, visualize agent execution DAGs, browse conversation history, and track cost — all from a local web UI.</p>
+          <div class="code-block code-block-sm">
+            <code><span class="prompt">$</span> agent-nuvira dashboard</code>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Git & PR Section -->
+  <section class="git-pr" id="git-pr">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag">Git & PR</span>
+        <h2 class="section-title">GitHub & GitLab <span class="gradient-text">PR Automation</span></h2>
+        <p class="section-desc">New in v1.32.0 — two dedicated agents for Git platform integration: PR review automation and GitLab project management, all from your terminal.</p>
+      </div>
+      <div class="git-pr-grid">
+        <div class="git-pr-card">
+          <div class="git-pr-header">
+            <div class="git-pr-icon gitlab">🦊</div>
+            <div>
+              <h3>GitLab Agent</h3>
+              <span class="git-pr-badge">New in v1.32.0</span>
+            </div>
+          </div>
+          <p class="git-pr-desc">Full GitLab REST API v4 integration for project management directly from the terminal.</p>
+          <ul class="git-pr-list">
+            <li>Create, list, comment on, and merge merge requests</li>
+            <li>Create and comment on issues</li>
+            <li>Check pipeline status</li>
+            <li>Discover and browse projects</li>
+            <li>Supports gitlab.com and self-hosted instances</li>
+          </ul>
+          <div class="code-block code-block-sm">
+            <code><span class="prompt">$</span> <span class="hljs-built_in">export</span> GITLAB_TOKEN=<span class="hljs-string">'glpat_your_token'</span></code>
+          </div>
+        </div>
+        <div class="git-pr-card">
+          <div class="git-pr-header">
+            <div class="git-pr-icon github">👁️</div>
+            <div>
+              <h3>PR Review Agent</h3>
+              <span class="git-pr-badge">New in v1.32.0</span>
+            </div>
+          </div>
+          <p class="git-pr-desc">Automated PR review with inline comments, security scanning, and quality checks via GitHub API.</p>
+          <ul class="git-pr-list">
+            <li>List open PRs across repositories</li>
+            <li>Review specific PR (#42) or all open PRs</li>
+            <li>Post inline review comments on changed lines</li>
+            <li>Run VerifyModule security + quality scans</li>
+            <li>Post summary comment with pass/fail/blockers</li>
+          </ul>
+          <div class="code-block code-block-sm">
+            <code><span class="prompt">$</span> <span class="hljs-built_in">export</span> GITHUB_TOKEN=<span class="hljs-string">'ghp_your_token'</span></code>
+          </div>
+        </div>
+      </div>
+      <div class="git-pr-cta">
+        <p>Use them in task plans or directly via the Planner:</p>
+        <div class="code-block">
+          <code><span class="prompt">$</span> agent-nuvira execute <span class="hljs-string">"review open PRs in my-org/my-repo"</span></code>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Enterprise Section -->
+  <section class="architecture" id="architecture">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag">Enterprise Ready</span>
+        <h2 class="section-title">Built for Teams.<br /><span class="gradient-text">Secured by Design.</span></h2>
+        <p class="section-desc">Enterprise-grade security, governance, and audit — not bolted on, but designed into every layer.</p>
+      </div>
+      <div class="features-grid">
+        <div class="feature-card" data-delay="0">
+          <div class="feature-icon privacy">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>
+          </div>
+          <h3>Role-Based Access Control</h3>
+          <p><strong>RBAC</strong> with admin / operator / viewer roles, a scoped permission matrix, and optional OIDC identity seam for SSO. Legacy single-user mode stays fully permissive until roles are assigned.</p>
+        </div>
+        <div class="feature-card" data-delay="100">
+          <div class="feature-icon privacy">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a10 10 0 1 0 10 10"/><path d="M12 6v6l4 2"/><path d="M22 12h-4l3-3 3 3z"/></svg>
+          </div>
+          <h3>Tamper-Evident Audit Chain</h3>
+          <p>SHA-256 hash-chained audit log — every record's hash includes the previous one. CEF/SIEM export, secret-redaction scrubber, and <code>buff audit verify</code> detects any tampering.</p>
+        </div>
+        <div class="feature-card" data-delay="200">
+          <div class="feature-icon privacy">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          </div>
+          <h3>Governance & PII Protection</h3>
+          <p>Provider/model allow & deny lists, admin max-cost caps, and <strong>PII-domain blocking</strong> — tasks matching your patterns are only served by providers meeting your privacy floor.</p>
+        </div>
+        <div class="feature-card" data-delay="300">
+          <div class="feature-icon agents">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          </div>
+          <h3>22-Platform Messaging Gateway</h3>
+          <p>Run from <strong>Telegram, Discord, Slack, WhatsApp, Email, Signal, Teams, Google Chat</strong> and 14 more — each opt-in via standard env vars, zero SDK dependencies.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Comparison Section -->
+  <section class="comparison" id="comparison">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag">Why Agent-Nuvira?</span>
+        <h2 class="section-title">Built Different. <span class="gradient-text">Truly Open.</span></h2>
+        <p class="section-desc">See how we stack up against the competition.</p>
+      </div>
+      <div class="comparison-table-wrapper">
+        <table class="comparison-table">
+          <thead>
+            <tr>
+              <th>Feature</th>
+              <th class="highlight-col">Agent-Nuvira</th>
+              <th>GitHub Copilot</th>
+              <th>Cursor</th>
+              <th>Claude Code</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="feature-name">Multi-Agent Pipeline</td>
+              <td class="highlight-col"><span class="check">✓</span> 17 agent roles</td>
+              <td><span class="cross">✗</span> Single agent</td>
+              <td><span class="cross">✗</span> Single agent</td>
+              <td><span class="cross">✗</span> Single agent</td>
+            </tr>
+            <tr>
+              <td class="feature-name">AI Provider Choice</td>
+              <td class="highlight-col"><span class="check">✓</span> 17+ providers + plugins</td>
+              <td><span class="cross">✗</span> OpenAI only</td>
+              <td><span class="cross">✗</span> Vendor-locked</td>
+              <td><span class="cross">✗</span> Anthropic only</td>
+            </tr>
+            <tr>
+              <td class="feature-name">Offline Capable</td>
+              <td class="highlight-col"><span class="check">✓</span> Full offline</td>
+              <td><span class="cross">✗</span> Cloud-only</td>
+              <td><span class="cross">✗</span> Cloud-only</td>
+              <td><span class="cross">✗</span> Cloud-only</td>
+            </tr>
+            <tr>
+              <td class="feature-name">Privacy / No Telemetry</td>
+              <td class="highlight-col"><span class="check">✓</span> Direct-to-provider</td>
+              <td><span class="cross">✗</span> Routes via MS</td>
+              <td><span class="warning">~</span> Limited</td>
+              <td><span class="warning">~</span> Limited</td>
+            </tr>
+            <tr>
+              <td class="feature-name">Pricing</td>
+              <td class="highlight-col"><span class="check">✓</span> Free (MIT) + API keys</td>
+              <td><span class="cross">✗</span> $10-39/mo</td>
+              <td><span class="cross">✗</span> $20/mo</td>
+              <td><span class="cross">✗</span> $20/mo</td>
+            </tr>
+            <tr>
+              <td class="feature-name">Plugin System</td>
+              <td class="highlight-col"><span class="check">✓</span> Full SDK</td>
+              <td><span class="cross">✗</span> None</td>
+              <td><span class="cross">✗</span> Limited</td>
+              <td><span class="cross">✗</span> None</td>
+            </tr>
+            <tr>
+              <td class="feature-name">Self-Learning</td>
+              <td class="highlight-col"><span class="check">✓</span> Adaptive routing</td>
+              <td><span class="cross">✗</span> None</td>
+              <td><span class="cross">✗</span> None</td>
+              <td><span class="cross">✗</span> None</td>
+            </tr>
+            <tr>
+              <td class="feature-name">Terminal-Native</td>
+              <td class="highlight-col"><span class="check">✓</span> No IDE lock-in</td>
+              <td><span class="warning">~</span> VS Code only</td>
+              <td><span class="warning">~</span> Cursor only</td>
+              <td><span class="warning">~</span> Terminal-only</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Section -->
+  <section class="cta-section">
+    <div class="container">
+      <div class="cta-card">
+        <div class="cta-glow"></div>
+        <h2 class="cta-title">Ready to Supercharge Your Development?</h2>
+        <p class="cta-desc">Join developers who are already using Agent-Nuvira to ship code faster, with more control and zero vendor lock-in.</p>
+        <div class="cta-buttons">
+          <a href="#quickstart" class="btn btn-primary btn-lg">
+            Get Started Free
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+          </a>
+          <a href="docs.html" class="btn btn-outline btn-lg">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+            Browse the Docs
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container footer-inner">
+      <div class="footer-brand">
+        <span class="logo-icon">◆</span>
+        <span class="logo-text">Agent-<strong>Nuvira</strong></span>
+        <p class="footer-desc">The open-source multi-agent AI coding assistant that puts you in control. No subscriptions. No telemetry. Your models, your way.</p>
+        <div class="footer-social">
+          <a href="https://github.com/imdheerajKube/agent-nuvira-documentation" target="_blank" rel="noopener" class="social-link" aria-label="GitHub">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+          </a>
+          <a href="https://www.npmjs.com/package/agent-nuvira" target="_blank" rel="noopener" class="social-link" aria-label="npm">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M0 7.334v8h6.666v1.332H12v-1.332h12V7.334H0zm6.666 6.664H5.334v-4H3.999v4H1.335V8.667h5.331v5.331zm4 0v1.336H8.667V8.667h1.999v5.33zm6.666 0h-1.333v-4h-1.333v4h-1.333v-4h-1.333v4h-1.333V8.667h6.665v5.331z"/></svg>
+          </a>
+        </div>
+      </div>
+      <div class="footer-links">
+        <div class="footer-col">
+          <h4>Product</h4>
+          <a href="#features">Features</a>
+          <a href="#pipeline">Pipeline</a>
+          <a href="#providers">Providers</a>
+          <a href="#quickstart">Installation</a>
+        </div>
+        <div class="footer-col">
+          <h4>Resources</h4>
+          <a href="docs.html">Documentation</a>
+          <a href="https://github.com/imdheerajKube/agent-nuvira-documentation/blob/main/docs/user-manual.md" target="_blank" rel="noopener">User Manual</a>
+          <a href="https://github.com/imdheerajKube/agent-nuvira-documentation/blob/main/docs/product-strategy.md" target="_blank" rel="noopener">Product Strategy</a>
+          <a href="https://github.com/imdheerajKube/agent-nuvira-documentation/issues" target="_blank" rel="noopener">GitHub Issues</a>
+        </div>
+        <div class="footer-col">
+          <h4>Community</h4>
+          <a href="https://github.com/imdheerajKube/agent-nuvira-documentation/blob/main/docs/capabilities.md" target="_blank" rel="noopener">Capabilities</a>
+          <a href="https://github.com/imdheerajKube/agent-nuvira-documentation/blob/main/docs/architecture.md" target="_blank" rel="noopener">Architecture</a>
+          <a href="https://github.com/imdheerajKube/agent-nuvira-documentation/blob/main/docs/whats-new.md" target="_blank" rel="noopener">What&rsquo;s New</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; 2026 Agent-Nuvira. MIT License. Built by Dheeraj Sharma.</p>
+      <p class="footer-desc" style="margin-top:8px;font-size:13px;">
+        <a href="https://www.agent-nuvira.com" style="color:inherit;">www.agent-nuvira.com</a>
+        · Install counts are from the public npm registry (peak 7-day window 25–31 Aug 2026; total since first publish).
+      </p>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
