@@ -49,5 +49,7 @@ nuvira chat "explain what this project does"
 
 Requires Node **>= 18.18.0**.
 
-- Source (private): [github.com/imdheerajKube/agent-nuvira](https://github.com/imdheerajKube/agent-nuvira)
-- This documentation: [github.com/imdheerajKube/agent-nuvira-documentation](https://github.com/imdheerajKube/agent-nuvira-documentation)
+- This repository: [github.com/imdheerajKube/agent-nuvira-documentation](https://github.com/imdheerajKube/agent-nuvira-documentation)
+
+> There is no public source repository. The site and this page are the published surface;
+> issues and corrections are welcome here.
