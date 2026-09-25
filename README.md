@@ -37,7 +37,7 @@ nuvira chat "explain what this project does"   # have a conversation about your 
 ```
 
 The first run is deliberately thorough — it probes every provider you hold a key for — and
-`nuvira doctor` will tell you exactly what it found. **[Full setup guide →](docs/user-manual.md)**
+`nuvira doctor` will tell you exactly what it found. **[Full setup guide →](https://docs.agent-nuvira.com/user-manual/)**
 
 ## Why it is different
 
@@ -78,18 +78,18 @@ configured.
 
 Beyond code, it drives a browser, reads PDFs and spreadsheets, generates and describes
 images, transcribes and speaks, runs code in a sandbox, supervises containers, and assesses
-a repository it has never seen. **[Everything it can do →](docs/capabilities.md)**
+a repository it has never seen. **[Everything it can do →](https://docs.agent-nuvira.com/capabilities/)**
 
 Vector retrieval keeps long contexts affordable rather than merely possible — measured on a
 real repository: **142,493 tokens saved at a 65.6% average reduction**.
 
 ## See it before you install it
 
-The **[command reference](docs/commands.md)**
+The **[command reference](https://docs.agent-nuvira.com/commands/)**
 covers every command with its objective, exact syntax and a copy-pasteable example. The
-**[CLI tour](docs/demos/index.md)** is a
+**[CLI tour](https://docs.agent-nuvira.com/demos/)** is a
 recorded sweep across the whole surface, captured from the real binary rather than performed
-for a camera. The **[architecture](docs/architecture.md)**
+for a camera. The **[architecture](https://docs.agent-nuvira.com/architecture/)**
 document explains how the execution engine is put together, including what is still target
 state rather than built.
 
@@ -99,7 +99,7 @@ It is not a hosted product — there is no cloud dashboard, because there is no 
 Provider support is broad, so polish is uneven across all 22. Multi-account key rotation is
 currently scoped to `plan` and `edit`, and unwinding that is the next milestone. Those are
 the honest boundaries, written down rather than discovered by you.
-**[Limitations and roadmap →](docs/user-manual.md#13-limitations-and-roadmap)**
+**[Limitations and roadmap →](https://docs.agent-nuvira.com/user-manual/#13-limitations-and-roadmap)**
 
 ## Repository layout
 
