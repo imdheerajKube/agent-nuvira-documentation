@@ -101,7 +101,7 @@ Run a cron job NOW (invoke its tool immediately)
 
 Start an interactive chat session with AI
 
-   - flags: `--dev, --file <file>, --model <model>, --no-cache, --provider <provider>`
+   - flags: `--dev, --file <file>, --keep-worktree, --model <model>, --no-cache, --provider <provider>, --resume [resume], --worktree`
 ### `nuvira edit`
 
 Edit a file using AI assistance
@@ -242,7 +242,7 @@ Run the model-registry maintenance daemon: probe + spot-check on a schedule
 
 Run a multi-agent pipeline to accomplish a goal
 
-   - flags: `--auto-branch, --auto-route, --checkpoint, --checkpoint-list, --context-limit <context_limit>, --context-prune <context_prune>, --dry-run, --engine <engine>, --gatherer-model <gatherer_model>, --json-events, --max-repairs <max_repairs>, --memory, --memory-clear, --memory-stats, --model <model>, --no-tool-calling, --plan-mode <plan_mode>, --planner-model <planner_model>, --provider <provider>, --repair-fallback-models <repair_fallback_models>, --repair-mode <repair_mode>, --resume [resume], --review, --reviewer-model <reviewer_model>, --sandbox, --skip-tests, --tool-calling, --verbose, --writer-model <writer_model>`
+   - flags: `--auto-branch, --auto-route, --checkpoint, --checkpoint-list, --context-limit <context_limit>, --context-prune <context_prune>, --dry-run, --engine <engine>, --gatherer-model <gatherer_model>, --json-events, --keep-worktree, --max-repairs <max_repairs>, --memory, --memory-clear, --memory-stats, --model <model>, --no-tool-calling, --plan-mode <plan_mode>, --planner-model <planner_model>, --provider <provider>, --repair-fallback-models <repair_fallback_models>, --repair-mode <repair_mode>, --resume [resume], --review, --reviewer-model <reviewer_model>, --sandbox, --skip-tests, --tool-calling, --verbose, --worktree, --writer-model <writer_model>`
 ### `nuvira run`
 
 Execute a shell command and show output (lightweight alternative to the full pipeline)
@@ -683,6 +683,11 @@ Run the Agent-Nuvira evaluation framework — measures if the agent is actually 
 Run the evaluation suite
 
    - flags: `--budget <budget>, --engine <engine>, --format <format>, --keep-workspaces, --model <model>, --pace, --provider <provider>, --routing, --suite <suite>, --tasks <tasks>`
+### `nuvira eval verify-seeds`
+
+Prove every seeded bug is genuinely broken (and genuinely fixable) — no provider needed
+
+   - flags: `--tasks <tasks>`
 ### `nuvira eval list`
 
 List available eval tasks
@@ -827,7 +832,7 @@ Stop a running dashboard gracefully (SIGTERM — from any terminal)
    - flags: `--port <port>`
 ### `nuvira agent`
 
-Scaffold and manage custom agent-baba-d agents
+Scaffold and manage custom agent-nuvira agents
 
 ### `nuvira agent create`
 
@@ -1101,6 +1106,30 @@ Show a tool's description and input schema
 List toolset groups (capability gating) with enabled state; enable/disable a group
 
    - flags: `--disable <disable>, --enable <enable>`
+### `nuvira parity`
+
+Surface-parity harness — prove the same experience on chat, execute, dashboard, gateway and subagents
+
+### `nuvira parity surfaces`
+
+Compare the surface registry against the real import graph
+
+### `nuvira parity debt`
+
+Check the anti-silo debt ratchet (observed surface debt must equal the frozen list)
+
+### `nuvira parity matrix`
+
+Show every capability × surface and any unproven `supported` claim
+
+### `nuvira parity faults`
+
+List the declared faults the harness can inject, and what each one proves
+
+### `nuvira parity run`
+
+Drive all five surfaces through the real harness and report the verdict
+
 ### `nuvira session`
 
 Project-scoped session continuity (debug surface — `continue` is the primary path)
@@ -1208,7 +1237,7 @@ Review one or more files and emit JSON findings
 
 Autonomous publish workflow — version, build, publish to npm & GitHub
 
-   - flags: `--dry-run, --major, --minor, --model <model>, --patch, --provider <provider>, --skip-tests, --verbose`
+   - flags: `--dry-run, --force, --fresh, --from <from>, --major, --minor, --model <model>, --no-preflight, --patch, --provider <provider>, --skip-tests, --verbose`
 ### `nuvira credentials`
 
 Store GitHub/npm release credentials so the agent can release without re-entering them
@@ -1323,4 +1352,4 @@ Delete all stored traces
 
 ---
 
-*429 commands (incl. subcommands) · generated from the live CLI — this file is the drift-guarded surface.*
+*437 commands (incl. subcommands) · generated from the live CLI — this file is the drift-guarded surface.*

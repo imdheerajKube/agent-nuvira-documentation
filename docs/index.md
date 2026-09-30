@@ -17,6 +17,10 @@ terminal, a web dashboard, or any of 22 messaging platforms.
 - **[Full Command Surface](reference/commands-surface.md)** — all 289 command entries,
   generated from the live CLI tree.
 - **[Architecture](architecture.md)** — how the execution engine is put together.
+- **[Building custom agents (SDK)](agent-sdk.md)** — write, test and register your
+  own agent, with what depth the SDK offers and what it deliberately does not.
+- **[VS Code extension](vscode-extension.md)** — every command, setting, language-model
+  tool and API, with an explicit depth statement.
 - **[What's New](whats-new.md)** — the 3.x release index.
 
 ## The shape of it

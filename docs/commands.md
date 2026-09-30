@@ -803,13 +803,26 @@ nuvira models excluded         # show what routing is skipping, and WHY
 ### 8.1 Evaluation framework
 
 - **Objective:** Measure whether the agent is actually improving.
-- **Command:** `nuvira eval run [-p <provider>] [-m <model>] [--tasks <t>] [--suite <s>] [--budget <$>] [--pace <n>] [--format <fmt>] [--routing]` · `nuvira eval list` · `nuvira eval results [--last] [--compare <id>]` · `nuvira eval score` · `nuvira eval clear`
+- **Command:** `nuvira eval run [-p <provider>] [-m <model>] [--tasks <t>] [--suite <s>] [--budget <$>] [--pace <n>] [--format <fmt>] [--routing]` · `nuvira eval verify-seeds` · `nuvira eval list` · `nuvira eval results [--last] [--compare <id>]` · `nuvira eval score` · `nuvira eval clear`
 - **Examples:**
   ```bash
   nuvira eval run --tasks quick --format text
   nuvira eval run --suite full --provider groq
+  nuvira eval verify-seeds                  # every seeded bug is broken, and fixable
+  nuvira eval run --suite seeded-bugs -p groq -m llama-3.3-70b-versatile
   nuvira eval results --last
   ```
+- **Seeded bugs (`--suite seeded-bugs`):** a separate benchmark with its own scoring — a
+  deliberate defect is planted in a small project, the run is asked to make the failing
+  check pass without editing it, and three things are scored apart: **found** (read from
+  what the run reported), **fixed** (the check passes now — ground truth), and **nothing
+  else touched** (every seeded file diffed against its original, plus any new file).
+  `nuvira eval verify-seeds` proves each seed FAILS its checks and PASSES them once the
+  reference fix is applied, with no provider and no tokens — a task that already passed
+  would measure nothing, so the suite refuses to score one and aborts instead. That same
+  verification runs before every scored run, which is why an aborted run costs nothing.
+  The "nothing else touched" component only counts on a task that was actually fixed: a run
+  that changes nothing scores 0 rather than 20% for leaving the workspace as it found it.
 
 ### 8.2 Benchmarks
 
@@ -957,14 +970,20 @@ nuvira models excluded         # show what routing is skipping, and WHY
 
 ### 10.5 Custom agents (SDK + scaffold)
 
-- **Objective:** Scaffold and register custom agent-baba-d agents.
-- **Command:** `nuvira agent create [-n <name>] [-d <desc>] [--dir <dir>]` · `nuvira agent list` · `nuvira agent info <name>` · `nuvira sdk scaffold [-t <template>] [--agent-type <type>]` · `nuvira sdk templates` · `nuvira sdk register <path> [-i <icon>]` · `nuvira sdk unregister <name>`
+- **Objective:** Scaffold and register custom agent-nuvira agents.
+- **Command:** `nuvira agent create [-n <name>] [-d <desc>] [--dir <dir>]` · `nuvira agent list` · `nuvira agent info <name>` · `nuvira sdk scaffold <outDir> <agentName> [description] [-t <basic-agent|full-agent|agent-pack>] [--agent-type <type>]` · `nuvira sdk templates` · `nuvira sdk register <className> <agentType> <sourceModule> [-i <icon>]` · `nuvira sdk unregister <agentType>`
 - **Examples:**
   ```bash
   nuvira agent create -n code-reviewer -d "Reviews PRs"
-  nuvira sdk scaffold -t typescript --agent-type plugin
-  nuvira sdk register ./my-agent --orchestrator-path ~/.nuvira/agents
+  nuvira sdk scaffold code-formatter CodeFormatter "Formats source code" -t full-agent
+  nuvira sdk register CodeFormatter code-formatter ./agents/code-formatter.js --orchestrator-path ./src/agents/orchestrator.ts
   ```
+- **First-timer details:** `sdk scaffold` takes the output directory and the class
+  name positionally, and an unknown `--template` is refused with the valid list
+  rather than silently falling back to a default. `sdk register` needs all three
+  positional arguments in that order, and its default orchestrator path is
+  `./src/agents/orchestrator.ts` — so it edits a **source checkout**, not an
+  npm-installed CLI. Full guide: [docs/AGENT_SDK.md](agent-sdk.md).
 
 ---
 
@@ -1178,6 +1197,43 @@ nuvira models excluded         # show what routing is skipping, and WHY
   changing routing rules — a phrase that used to resolve can regress silently
   otherwise, and this is the only thing that catches it.
 
+### 12.12 Surface parity — prove every surface behaves the same
+
+- **Objective:** Check that the same request produces the same experience on **chat,
+  execute, dashboard chat, the gateway and subagents** — and that the code still agrees
+  with the architecture the project claims. The requirement is only real if a capability
+  cannot land on one surface and quietly miss the other four.
+- **Command:** `nuvira parity` · `nuvira parity surfaces` · `nuvira parity debt` · `nuvira parity matrix` · `nuvira parity faults` · `nuvira parity run`
+- **Examples:**
+  ```bash
+  nuvira parity                 # summary of the subcommands
+  nuvira parity surfaces        # the registry vs the real import graph
+  nuvira parity debt            # the anti-silo ratchet (exit 1 on drift)
+  nuvira parity matrix          # every capability × surface, and any unproven claim
+  nuvira parity faults          # the declared faults, and what each one proves
+  nuvira parity run             # drive ALL five surfaces and report the verdict
+  ```
+- **Faults:** `nuvira parity faults` lists every fault the harness can inject — the
+  protocol is `NUVIRA_INJECT_FAULT=<site>:<kind>[:<times|all>[:<tool>]]`, e.g.
+  `provider:error:all` for a backend that fails every call, `tool:error:read_file` for
+  one tool, `ipc:error` for a forked child that dies. It is off by default (with the
+  variable unset nothing is wrapped), every message says the fault was injected, and a
+  declaration that cannot be parsed throws rather than running unfaulted. The same
+  declaration works outside the harness — `nuvira chat "…"` with it set runs a real
+  turn against a broken dependency on purpose. Under a fatal fault the surfaces are
+  judged on whether the failure was REPORTED, not on identical wording.
+- **First-timer detail:** `surfaces`, `debt` and `matrix` read the repository's own
+  `src/` import graph and exit non-zero when it drifts, so they work as a gate in a
+  script or CI. `run` is the real thing: it drives each surface's own turn code (the
+  real chat engine, dashboard console, gateway handler, execute command and a forked
+  child) against a loopback stub provider in an isolated profile — no network, no real
+  API key, no effect on a running dashboard or gateway. It drives three scenarios: a
+  plain turn, a tool call that works, and a tool call that FAILS — the last one because
+  a surface can agree that a tool ran while disagreeing about whether it worked, and an
+  outcome that is merely absent would otherwise read as agreement too. The same drivers
+  and the same scenario list back the parity test suite, so the CLI verdict and CI
+  cannot disagree.
+
 ---
 
 ## 13. Cache & sandbox
@@ -1248,6 +1304,7 @@ nuvira intent        plain-English → CLI routing (resolve an ask into the comm
 nuvira nlu           NLU intent debugging
 nuvira code-map      project symbol map
 nuvira tools         tool registry + toolsets
+nuvira parity        surface-parity harness (surfaces/debt/matrix/run)
 nuvira session       project-scoped session continuity
 nuvira marketplace   community plugins & workflow templates
 nuvira mcp           MCP server management (list/connect/call/install/serve)

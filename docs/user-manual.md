@@ -206,7 +206,7 @@ nuvira dashboard --no-gateway       # do not start messaging alongside
 nuvira dashboard stop                # graceful SIGTERM, from any terminal
 ```
 
-### The 22 pages
+### The 23 pages
 
 | Page | Route | What it is for |
 |---|---|---|
@@ -219,18 +219,19 @@ nuvira dashboard stop                # graceful SIGTERM, from any terminal
 | 📇 Contacts | `/contacts` | Outbound contacts, send-by-name |
 | 📡 Gateway | `/gateway` | Channel status, send tests |
 | 🧠 Models | `/models` | Registry, availability, exclusions |
-| 📅 Timeline | `/models/timeline` | Model history over time |
+| 📅 Timeline | `/models/timeline` | Registry age profile: what is routable, what is ageing out |
 | 🤖 Routing | `/routing` | Why the router chose what it chose |
 | 📨 Requests | `/requests` | Per-request telemetry |
 | 🧰 Agent Hub | `/hub` | Tools, skills, permissions, channels |
 | 🔍 Traces | `/traces` | Per-step reasoning traces |
 | 🔐 Environment | `/env` | Skill env / secrets surface |
+| 🌱 Process Env | `/process-env` | Run switches: isolation, resume, debug log, OTLP export, tool hooks |
 | 💾 Memory | `/memory` | Trajectory + vector memory |
 | 📜 Executions | `/executions` | Execution audit browser |
 | 📝 History | `/history` | Conversation history |
 | 💰 Costs | `/costs` | Spend per provider/session |
 | 📈 Benchmarks | `/benchmarks` | Model benchmark charts |
-| ⚙️ System | `/system` | Health panel |
+| ⚙️ System | `/system` | Doctor checks (pass/warn/fail), live stream state, agent stats |
 | 🛠️ Admin | `/admin` | Governance policy (RBAC, allow/deny, cost cap) |
 
 There is also a `/bedrock` onboarding route that is not in the left nav.
@@ -238,6 +239,65 @@ There is also a `/bedrock` onboarding route that is not in the left nav.
 **Key point:** the dashboard is not a separate product. Its console delegates to the same
 chat engine, its channel send-test uses the same gateway, and its model/routing/cost panels
 read the same ledger the CLI writes.
+
+### Process Env — the switches, and the value that wins
+
+The **Environment** page (`/env`) edits *skill* secrets: any well-formed name a skill might
+declare. The **Process Env** page (`/process-env`) is a different thing — it edits the curated
+switches that change how a **run** behaves, and each row is a real control (on / off / unset)
+rather than a name-and-value box:
+
+| Switch | Unset means | Also reachable as |
+|---|---|---|
+| `NUVIRA_ISOLATE` | a turn runs in the project directory | `nuvira chat --worktree` |
+| `NUVIRA_RESUME` | nothing is replayed | `nuvira chat --resume [id]` |
+| `NUVIRA_STRICT_MODEL` | a dead pin is substituted, and the swap is announced | — |
+| `NUVIRA_DEBUG_LOG` | no log is written | — |
+| `NUVIRA_OTEL` | the SDK is never imported | — |
+| `NUVIRA_TOOL_HOOK_BEFORE` / `_AFTER` / `_FAILED` | no hook for that phase | `tools.hooks` in `buffconfig.json` |
+
+Three things the page is deliberately honest about:
+
+- **On writes the spelling the reader reads.** `NUVIRA_STRICT_MODEL` is enabled only by the
+  literal `1`, so the page stores `1` rather than whatever was typed — `true` would look like a
+  working switch while `strictModelMode()` compared it to `'1'` and ignored it. Values are
+  canonicalised (`true` → `1`, `no` → `0`) before they reach the file.
+- **Unset is not the same as off**, and each row says what unset means. `NUVIRA_RESUME` is the
+  clearest case: `1` asks for the record for this ask in this directory, any other non-falsey
+  value *names* a checkpoint, and nothing at all declines.
+- **A shell value outranks this file.** `loadEnv()` never overrides an environment variable that
+  is already set, so an export in your shell — or a systemd unit's `Environment=` — wins over the
+  dashboard AND over every CLI run in that shell. A row that says **shell value wins** is
+  reporting exactly that, and writing here will not change it; unset the export instead.
+
+The page also refuses things a generic editor would accept: a name that is not on the list
+(the endpoint is curated, so a page that claims to be cannot write an arbitrary variable), an
+empty value (use **Unset**), and a value containing a newline (it would add a second variable to
+the file). Hook commands are stored in plain text — the page says so, because a hook is the one
+place a user might paste a token, and it is not masked here the way a skill secret is.
+
+### System — the doctor page, not a second set of counters
+
+The **System** tab (`/system`) runs the same checks `nuvira doctor` runs, on demand, and shows each
+one as pass / warn / fail with the fix for anything that is not passing. The groups are the ones the
+CLI uses: **System** (runtime, filesystem, configuration, local models) and **Enterprise**
+(governance, audit, RBAC, cost cap — `nuvira doctor --enterprise`). The rollup states failures
+first, so a mostly-green summary cannot bury one.
+
+Two things it deliberately does *not* claim:
+
+- **The stream state is real.** The page used to print a hardcoded `● Connected`, which could never
+  be wrong because it read nothing at all. It now reports the actual SSE state — the same value as
+  the nav footer — so *Reconnecting…* means the dashboard is not receiving updates. The checks keep
+  working when it says that, because they are their own HTTP request rather than a stream frame.
+- **Size is not health.** The four learning-store counters (patterns, feedback, vectors, memory
+  directory) are still on the page, under **Learning Stores** and labelled as sizes. They were
+  previously the *entire* page under the title "System Health", which is not a question they answer.
+
+**Agent performance** is read from `agent-stats.json` and computed by the server, not the browser:
+recorded runs, the overall success rate, and a per-agent row with runs, success rate and last run.
+Rates are stored as fractions and rendered as percentages. With nothing recorded yet, the section
+says so rather than showing an empty table.
 
 ### First login, and the password you must change
 
@@ -605,7 +665,24 @@ file". Categories below are descriptive; run `nuvira tools list` for the live re
 
 **Meta** — `ask_user`, `approval`, `write_approval`, `interrupt`, `todo`,
 `tool_search`, `tool_output_limits`, `tool_result_storage`, `budget_config`,
-`analyze`, `build`, `document`, `repair`, `resume`, `test`, `website`.
+`analyze`, `build`, `document`, `repair`, `resume`, `test`, `website`,
+`finding`.
+
+**`finding` — what was CHECKED vs what is a guess.** The agent records a finding
+for anything its answer asserts that a second party could check, together with
+the evidence it actually gathered (a command and its real output, a path it read,
+a quote from the request). The agent states the claim, the outcome and the
+evidence — never the verdict: a claim with usable evidence is recorded
+**CONFIRMED**, and one without is recorded **PLAUSIBLE**, which is an honest
+result rather than a failure. Every surface reports the same wire form (the
+engine result and `onFinding` on the CLI and dashboard, the `inbound.chat` log
+record on the gateway, a `finding` IPC frame from a subagent), so a claim cannot
+be reported as verified on one surface and unchecked on another. The dashboard
+**draws** each finding as a card in the chat thread — evidence for a CONFIRMED
+one, an explicit "no evidence — reported as PLAUSIBLE" for the rest — and the
+**Traces** tab lists the findings a finished run recorded, with the split
+(`1 confirmed, 3 plausible`) on the row and the evidence on the trace, so a
+verdict can be audited after the run rather than only watched live.
 
 ### Examples
 
@@ -726,6 +803,47 @@ nuvira models refresh
 👀 A provider that stays skipped with a working key is a bug — `nuvira models unblock <provider>`
 ```
 
+**Two different questions, and it matters which one you are asking.** "Is the provider still
+listing this model" (probe age) and "would the router use it right now" (verification) are not
+the same thing, and a model can be freshly probed and never verified — which is the common
+case, because a provider lists hundreds of ids and only a handful have ever been tried.
+
+The dashboard's **Timeline** tab (`/models/timeline`) keeps them apart: *Reachability* is
+`Routable` / `Parked` / `Proof expired` / `Proven dead` / `Never verified`, computed from the
+same predicate the router uses (`isUsable()`), and *Freshness* is a separate chip for probe age.
+So the Reachable count is exactly the set the router can pick — and **Never verified is not
+"unreachable"**: it means nothing has ever been tried against that id, which is an unknown, not
+a failure. Background spot-checks resolve them a few per cycle. `Proof expired` is the one that
+quietly shrinks a pool — the model works, but its proof is older than 7 days, and a re-probe
+(`nuvira models refresh`) restores it.
+
+#### Working the never-verified backlog down
+
+The Timeline carries one action, **"Verify next N now"**, so that backlog is not something you
+have to wait on the background daemon for. Pick a count (1–25) and it spot-checks that many
+never-verified ids, one at a time, showing which model it is on and what each check decided:
+
+* ✅ **verified** — a 1-token call succeeded, so the router can now pick it.
+* ⛔ **proven unavailable** — the provider refused it (403/404). Re-probing will not help.
+* ⚠️ **errored** — a transient blip, so the entry is left untouched and the model is **still
+  unknown**; it will be picked again next run. It is never counted as verified.
+
+Each check is a real generation against one of your provider keys, so the run is bounded (25 per
+run), single-flight (a second click while one is running is refused rather than queued — two
+runs would probe the same models twice), and it only ever spends on models that are unknown
+*and* reachable: proven models, providers you have no credentials for, and anything inside its
+10-minute probe throttle are all skipped. Because a check either proves a model or marks it
+dead, both outcomes remove it from the backlog — so repeating the action makes real progress,
+and the panel reports how many never-verified models remain after each run.
+
+Under the hood: `POST /api/models/verify-next` (requires `routing.operate`, i.e. an
+**admin** or **operator** session) starts a run and returns as soon as it is planned;
+`GET /api/models/verify-next` reports progress, which is what the panel polls. The read is open
+like the Timeline data itself; only the write is gated, because only the write spends quota.
+
+The **Models** tab (`/models`) is the live counterpart: it probes each provider now and says
+`<N> listed · <M> routable right now` with a per-model reason.
+
 ### Observability
 
 ```bash
@@ -739,6 +857,86 @@ nuvira history
 nuvira feedback record / list / stats
 ```
 
+### Fault injection — make a dependency fail on purpose
+
+```bash
+nuvira parity faults              # every fault the harness can declare, and what it proves
+```
+
+Fault injection makes one of the agent's own dependencies fail **on purpose**, so
+what it does when something breaks is a measured fact rather than a hope. It is off
+by default and costs nothing when off: with the variable unset, no provider or tool
+call is wrapped, and the objects handed out are the same ones as before.
+
+```bash
+# A provider that fails every model call (HTTP 500), for a live run or a demo:
+NUVIRA_INJECT_FAULT=provider:error:all nuvira chat "summarise this repo"
+
+# A response that arrives and says nothing (a truncated body):
+NUVIRA_INJECT_FAULT=provider:malformed nuvira execute "fix the failing test"
+
+# One tool, failing on every call — honoured across the fork too:
+NUVIRA_INJECT_FAULT=tool:error:read_file nuvira chat "what does the config do?"
+
+# The first two tool calls, whatever they are; and a forked child that dies:
+NUVIRA_INJECT_FAULT=tool:error:2 nuvira chat "…"
+NUVIRA_INJECT_FAULT=ipc:error   nuvira chat "…"
+```
+
+Declaration format: `<site>:<kind>[:<times|all>[:<tool name>]]`, where `site` is
+`provider`, `tool` or `ipc`, and `kind` is `error`, `malformed` or `unavailable`.
+`off` (or unsetting the variable) disables it.
+
+Two promises, and both matter:
+
+- **An injected fault never looks like a real one.** Every message it produces says
+  it was injected, and names the declaration, so neither you nor the model can
+  mistake it for an outage.
+- **A typo is not a silent no-op.** A declaration that cannot be parsed THROWS
+  rather than running unfaulted — a demo that "proves" failure handling while
+  nothing failed is worse than no demo.
+
+The parity harness uses the same protocol twice over: `provider` faults are served by
+its loopback stub (so the real adapter's error mapping runs), while `tool`/`ipc`
+faults are declared to the running agent. `nuvira parity run` drives both on all five
+surfaces; `tests/parity/fault-injection.test.ts` pins them. Under a fatal fault the
+surfaces are judged on whether the failure was REPORTED, not on identical wording —
+a GUI bubble, a CLI line, a messaging reply and a forked child legitimately differ in
+copy, but none of them may call a failed turn a success.
+
+### Seeded-bug benchmark — can it find a defect it was not told about?
+
+```bash
+nuvira eval verify-seeds          # offline gate: every seed is broken, and fixable
+nuvira eval run --suite seeded-bugs -p groq -m llama-3.3-70b-versatile
+```
+
+A deliberate defect is planted in a small project, and the run is asked to make the
+failing check pass **without editing the check**. Three things are scored apart,
+because they fail apart:
+
+| Metric | Weight | Read from |
+|---|---|---|
+| **Found** | 40% | what the run reported, matched against the defect's diagnostic vocabulary |
+| **Fixed** | 40% | the same checks, re-run in the workspace it edited — ground truth |
+| **Nothing else touched** | 20% (only on a fix) | every seeded file diffed against its original, plus any file it created |
+
+The last component is a modifier on a FIX, not credit of its own: a run that changes
+nothing satisfies "changed nothing it should not have" trivially, so it scores 0
+instead of 20%. Diagnosing without fixing scores 0.4; a clean fix scores 0.6, and 1.0
+when the run also named the defect.
+
+Why the number can be trusted: every seed is declared **twice** — the broken workspace
+and the same workspace after a reference fix — and `nuvira eval verify-seeds` proves
+the checks FAIL on the one and PASS on the other. A seed whose check merely crashed
+does not count (the check must fail by printing its own `FAIL` marker), and a run
+REFUSES to score a seed that does not verify, so a task that already passed can never
+contribute a number. Verification needs no provider and no tokens, and a live run
+verifies every seed before it spends one.
+
+Reports land in `docs/benchmarks/seeded-bugs-<provider>-<model>.md`, beside the M2b
+benchmark reports.
+
 ### Collaboration and extension
 
 ```bash
@@ -751,6 +949,98 @@ nuvira plugins list / scan
 nuvira phase create <name> <goals...>   # multi-goal phase scopes
 nuvira sdk
 ```
+
+### Write your own agent (SDK)
+
+Three commands take you from nothing to a tested agent:
+
+```bash
+nuvira sdk templates                                       # basic-agent | full-agent | agent-pack
+nuvira sdk scaffold code-formatter CodeFormatter "Formats source code" -t full-agent
+cd code-formatter && npm install && npm run build && npm test   # passes before you edit anything
+nuvira sdk info                                            # the SDK version THIS CLI expects
+```
+
+An agent extends `Agent`, declares `name`/`description`, implements
+`execute(context, callLLM)`, and exposes a descriptor built with `defineAgent()` —
+which derives `agentType` from the class name and **throws at definition time** if
+it is not kebab-case, rather than letting a plan step silently never match:
+
+```ts
+import { Agent, defineAgent, type AgentContext, type AgentResult, type LLMCallFn } from '@agent-nuvira/sdk';
+
+export class CodeFormatter extends Agent {
+  readonly name = 'CodeFormatter';
+  readonly description = 'Formats source code according to project conventions';
+
+  validate(context: AgentContext): true | string {
+    return context.artifacts.length ? true : 'Pass me at least one file to format.';
+  }
+
+  async execute(context: AgentContext, callLLM: LLMCallFn): Promise<AgentResult> {
+    const out = await callLLM(
+      [`Format these files.`, ...context.artifacts.map((f) => `--- ${f.path} ---\n${f.content}`)].join('\n'),
+      { temperature: 0.2, maxTokens: 2048 },
+    );
+    return { success: true, summary: `Formatted ${context.artifacts.length} file(s)`, details: out };
+  }
+}
+
+export const agentDescriptor = defineAgent({ AgentClass: CodeFormatter, tags: 'code, format' });
+```
+
+Two things decide whether this is the right tool for what you are building, and
+the second one is the one people are surprised by:
+
+- **You never choose a provider.** The orchestrator injects `callLLM`, so your agent
+  inherits routing, failover, the quota ledger and the model-substitution repairs
+  automatically. It cannot call tools, and it proposes file edits through
+  `context.fileChanges` rather than writing to disk itself — so `--dry-run` and
+  review mode keep working.
+- **`nuvira sdk register` edits SOURCE.** It adds an import, a `case` in
+  `createAgent()` and an `AGENT_ICONS` entry to `src/agents/orchestrator.ts`, so it
+  needs a checkout of this repository; with the CLI installed from npm there is no
+  such file and the command says `Orchestrator file not found at: …` instead of
+  pretending. Distributing an agent to a normal install means shipping a plugin
+  file (`nuvira plugins list`).
+
+`nuvira sdk info` first, always: an SDK built against a different version than the
+CLI running it is the usual cause of a custom agent that will not load. The full
+guide — the context bus, the ten testing helpers, scaffolding, registration and an
+explicit "what you get / what you do not get" — is
+[docs/AGENT_SDK.md](agent-sdk.md).
+
+### Drive it from VS Code
+
+The extension (`dheerajsharma.agent-nuvira-vscode`) is an editor surface for the
+SAME engine — every action spawns `agent-nuvira` as a child process, so it shares
+your routing, quota ledger and memory with the terminal:
+
+```bash
+code --install-extension dheerajsharma.agent-nuvira-vscode
+npm install -g agent-nuvira      # required: the extension is a surface, not an engine
+```
+
+| In the editor | What it runs underneath |
+|---|---|
+| **Agent-Nuvira: Execute Goal** | `execute "<goal>"` |
+| **Agent-Nuvira: Quick Fix** | `edit <path> --quick` |
+| **Agent-Nuvira: Review File** | `execute "Review the file <path> …"` |
+| **Agent-Nuvira: Explain Code** | `chat "Explain the following …" --stream` |
+| **Agent-Nuvira: Generate Test** | `execute "Generate comprehensive unit tests …"` |
+| **Agent-Nuvira: Run Workflow** | `workflow run <template> "<goal>"` |
+
+With `agent-nuvira.useAutoRouting` on, an `execute` gains `--auto-route` and chat
+and inline completions gain `--model auto`; that switch is the entire difference.
+Three language-model tools (`#reviewFileWithAgentNuvira`,
+`#explainWithAgentNuvira`, `#executeGoalWithAgentNuvira`) also let Copilot Chat
+delegate to this engine and read the result as ordinary text, and `activate()`
+returns a small programmatic API (`version`, `commands`, `openChat`,
+`executeGoal`, `getActiveModel`, `getQuotaStatus`) for other extensions.
+
+Everything else — all 13 commands, every setting and keybinding, the language-model
+tools, the API with a worked example, and an explicit depth statement — is in
+[docs/VSCODE_EXTENSION.md](vscode-extension.md).
 
 ---
 
@@ -810,6 +1100,7 @@ nuvira retrieval stats
 | Run a pipeline | Tasks (`/tasks`), Execution (`/dag`) | `nuvira execute` |
 | See why a model was chosen | Routing (`/routing`) | `nuvira models excluded`, `nuvira learn stats` |
 | Manage providers/keys | Environment (`/env`), Models (`/models`) | `nuvira config`, `nuvira config vault` |
+| Set a run switch (isolation, resume, debug log, OTLP, tool hooks) | Process Env (`/process-env`) | `--worktree`, `--resume [id]`, `NUVIRA_OTEL`, `NUVIRA_DEBUG_LOG`, `NUVIRA_TOOL_HOOK_*` |
 | Manage channels | Gateway (`/gateway`), Platforms (`/platforms`), Contacts (`/contacts`) | `nuvira gateway`, `nuvira config gateway` |
 | Manage skills/tools/permissions | Agent Hub (`/hub`) | `nuvira skill`, `nuvira tools list` |
 | Inspect a bad run | Traces (`/traces`), Executions (`/executions`) | `nuvira trace replay <id>` |
@@ -860,6 +1151,356 @@ them is a security bug.
 | Slow first run | Model discovery walks every provider — expected |
 | Key handling | `nuvira config vault status`, `nuvira config vault migrate-keys` |
 | Whole-system health | `nuvira doctor --verbose` |
+
+### Attaching evidence to a bug report (session debug log)
+
+"It did not answer" / "it sent the wrong thing" is usually unactionable, because
+the failing run left nothing behind that says which backend served it. Set
+`NUVIRA_DEBUG_LOG=1` (any value except `0`, `false`, `off` or `no` turns it on)
+and every surface writes one plain-text log per turn:
+
+```bash
+NUVIRA_DEBUG_LOG=1 nuvira chat "list the working directory, then answer"
+# 🐞 cli-chat: session debug log written to ~/.nuvira/debug-logs/cli-chat-…log — attach it to a bug report.
+```
+
+```bash
+NUVIRA_DEBUG_LOG=1 nuvira dashboard      # the server process logs every dashboard turn
+NUVIRA_DEBUG_LOG=1 nuvira gateway run    # every inbound messaging turn
+NUVIRA_DEBUG_LOG=1 nuvira execute "run the failing test"
+```
+
+The file opens with the header a bug report cannot be debugged without — the
+surface, the tool transport, and **the backend that actually served the turn**
+(provider and model as resolved *after* any failover):
+
+```text
+# nuvira session debug log — safe to attach to a bug report
+# credentials are redacted; memory and prompts are previews, not payloads
+# surface: dashboard-chat
+# engine: loop
+# backend.provider: groq
+# backend.model: llama-3.3-70b-versatile
+# backend.transport: native
+...
+```
+
+Under the header come the turn's events in order — tool starts and their
+outcomes, gate decisions, refusals, and the findings the turn recorded. Three
+properties are deliberate: **redacted** (anything key-shaped is masked with the
+same scrubber the gateway log uses, so the file is safe to paste into an issue),
+**bounded** (lines are previews, the event list is capped and says what it
+dropped, and the file itself is capped), and **written once at the end** — which
+is what lets the header name the backend that actually answered. Logs live in
+`~/.nuvira/debug-logs/`; `NUVIRA_DEBUG_LOG_DIR` moves them. A forked subagent
+writes its own, and a turn served from the response cache says so rather than
+borrowing an attribution from a turn that never ran.
+
+**From the dashboard the log comes to you.** A log nobody can find is only half
+an artifact, and `~/.nuvira/debug-logs/` is not a path anyone greps while filing
+a bug, so each chat is the way in: the 🐞 button beside the attachment button
+downloads a **support bundle** for the conversation you are looking at — the
+debug logs that conversation's turns wrote (each naming the backend that served
+it), the conversation itself, and a manifest saying what is inside and what is
+deliberately not. Selection is by each log's own `# session:` header rather than
+by recency, so a second tab running its own chat can never end up in your
+bundle. When there is nothing to attach the download *refuses* rather than
+handing over an archive that looks complete, and names the missing step: either
+logging is off in the server process (`NUVIRA_DEBUG_LOG=1`, then restart) or this
+conversation has not finished a turn since it was turned on.
+
+### Shipping a turn's spans to your own collector (OTLP)
+
+The debug log explains ONE run on ONE machine. When the question is instead "which
+step is slow, which tool is the one that fails, and is the subagent I spawned
+where the time went", the answer is a trace — and the format every tracing tool
+already speaks is OTLP. Point it at any collector that accepts OTLP/HTTP:
+
+```bash
+NUVIRA_OTEL=1 \
+OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318 \
+  nuvira chat "list the working directory, then answer"
+# 🔭 cli-chat: OTLP spans → http://localhost:4318/v1/traces (unset NUVIRA_OTEL to stop)
+```
+
+Every surface exports, and every surface exports the SAME tree, so two surfaces
+can be read side by side:
+
+```text
+nuvira.turn                        (attributes: nuvira.surface, nuvira.session, nuvira.goal)
+└─ nuvira.tool.read_file           (one child per tool call that actually RAN)
+└─ nuvira.tool.edit_file           (nuvira.ok, and a red status + message when it failed)
+```
+
+A few decisions worth knowing, because they are the parts that surprise people:
+
+- **Off unless asked.** With `NUVIRA_OTEL` unset nothing is built, nothing is
+  imported and nothing leaves the machine — the SDK is loaded lazily, so an
+  ordinary run pays no startup cost.
+- **The turn is one span, and the work is the children.** A tool call that a gate
+  REFUSED gets no span (the span is created where the call actually runs), and a
+  finding is a span **event** rather than a span — a finding has no duration, so
+  a point in time is its honest shape. There is deliberately no model-call span:
+  the loop's event taxonomy has no model kind, so such a span could only exist on
+  some surfaces, and a tree that differs per surface is a tracing feature that
+  lies.
+- **It cannot break the run.** Provider setup, attribute rendering and the final
+  flush are each best-effort, and the flush is bounded by ONE export timeout
+  (three seconds by default): an unreachable collector costs a turn a pause, once,
+  and never an exception.
+- **The standard batch settings are honoured.** `OTEL_BSP_MAX_QUEUE_SIZE`,
+  `OTEL_BSP_SCHEDULE_DELAY`, `OTEL_BSP_MAX_EXPORT_BATCH_SIZE` and
+  `OTEL_BSP_EXPORT_TIMEOUT` set the span queue, the batch window, the batch size
+  and one export's timeout — which is also the flush's bound, so raising it is how
+  a slow path to your collector stops being cut off. Unset, they fall back to this
+  project's defaults rather than the SDK's: a 1s batch window and a 3s export
+  timeout, both shorter because a turn waits for its own spans to ship.
+- **Attribute values are previews, and redacted** with the same scrubber the
+  gateway log and the debug log use. A span is shipped to a third party by
+  definition, so the file-safe rule applies here too.
+- **A subagent joins its parent's trace.** A forked child is a separate process
+  with its own provider, so its spans would be a second, unrelated trace — the
+  spawner hands it the parent's W3C `traceparent` in its environment instead, and
+  the child's turn span hangs off the tool call that spawned it — so your
+  collector shows one trace crossing the process boundary, not two. The
+  header is read from the span that is ACTIVE at the moment of the fork, so two
+  turns interleaving in one server cannot hand each other's trace ids to a child
+  (a child started without one starts its own trace rather than being grafted
+  onto a trace nobody is running).
+- **`OTEL_SERVICE_NAME` names the service** (default `agent-nuvira`), and the
+  per-signal `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT` overrides the generic endpoint,
+  exactly as the OTLP spec says. `NUVIRA_OTEL=1` with no endpoint at all is called
+  out in the notice rather than failing quietly — the spans are built and dropped
+  in that case, which otherwise looks exactly like a broken collector.
+
+The same switch works on every surface and in the forked child, so a gateway
+ turn, a dashboard turn and a subagent all land in the one collector:
+
+```bash
+NUVIRA_OTEL=1 OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318 nuvira dashboard
+NUVIRA_OTEL=1 OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318 nuvira gateway run
+NUVIRA_OTEL=1 OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318 nuvira execute "run the failing test"
+```
+
+### Guarding tool calls with hooks (before / after / failed)
+
+Tracing tells you what happened. A hook is how you act on it: your own command,
+run on every tool call, which can **record** the call or **refuse** it. Declare
+it in `buffconfig.json`:
+
+```json
+{
+  "tools": {
+    "hooks": [
+      { "phase": "before", "command": "/usr/local/bin/policy-check", "tools": ["run_terminal", "edit_file"], "label": "no-writes-policy", "timeoutMs": 5000 },
+      { "phase": "after",  "command": "/usr/local/bin/audit-log" },
+      { "phase": "failed", "command": "/usr/local/bin/audit-log" }
+    ]
+  }
+}
+```
+
+For a single run, without editing config, set one command per phase —
+`NUVIRA_TOOL_HOOK_BEFORE`, `NUVIRA_TOOL_HOOK_AFTER`, `NUVIRA_TOOL_HOOK_FAILED`. The
+environment **replaces** the configured hooks for its phase (one list per phase,
+not a merge), and it is how a shell one-off stays a one-off:
+
+```bash
+cat > ~/deny-shell.mjs <<'JS'
+let raw = '';
+process.stdin.setEncoding('utf8');
+for await (const chunk of process.stdin) raw += chunk;
+const call = JSON.parse(raw);
+if (call.phase === 'before' && call.tool === 'run_terminal') {
+  console.log(JSON.stringify({ decision: 'deny', reason: `no shell in ${call.cwd ?? 'this repo'}` }));
+}
+JS
+
+NUVIRA_TOOL_HOOK_BEFORE='node ~/deny-shell.mjs' nuvira chat "run the test suite"
+```
+
+Your command receives the call as JSON on **stdin** and answers on **stdout**:
+
+```json
+{
+  "phase": "before",
+  "tool": "run_terminal",
+  "arguments": { "command": "npm test" },
+  "callId": "call_1",
+  "surface": "cli-chat",
+  "cwd": "/path/to/project",
+  "hook": "no-writes-policy"
+}
+```
+
+`after` and `failed` add what happened — `ok`, a bounded `result` preview (with
+`resultTruncated` when it was cut), `durationMs`, and for `failed` an `error`.
+`before` carries none of those, and that is the point: it runs before there is an
+outcome to report. On stdout, **silence means allow** — a hook that only records
+something has nothing to decide. To stop a call, say so:
+
+```json
+{ "decision": "deny", "reason": "no writes without review" }
+```
+
+What that buys and costs, in the order people ask:
+
+- **A veto is a failed call, not a hidden one.** The model is told
+  `Error: refused by a tool hook (no-writes-policy): no writes without review`,
+  so the turn continues with the refusal in context and every surface's tool
+  lifecycle shows the attempt and its outcome — in the debug log, in the
+  dashboard's step cards, and in the gateway's durable turn record. The tool
+  itself never runs, and no span is opened for it.
+- **Exactly one of `after` / `failed` fires.** `after` for a call that ran and
+  succeeded, `failed` for one that ran and did not (a thrown error, or a result
+  the loop's own `Error:` convention marks as a failure). A hook that counts
+  failures is never told about a success. A vetoed call fires neither: it never
+  ran.
+- **A broken hook never vetoes, and never hides.** A command that crashes, times
+  out (`timeoutMs`, 5s by default), exits non-zero, or prints something that is
+  not the JSON above is **reported** as a `tool-hook` gate decision — visible in
+  the debug log and the trace — and the call proceeds. The alternative is worse
+  than it looks: one bad hook would stop every tool call in the process, and it
+  would do so silently, because the hook meant to report problems is the broken
+  one. Only a well-formed `deny` stops work.
+- **It runs on every surface, including a forked subagent.** The child is a
+  separate process with its own config: it reads its own `tools.hooks` and
+  inherits your environment, so a policy that holds in `nuvira chat` holds inside
+  a delegated run too — anything else would be a policy that stops at the process
+  boundary and therefore only *looks* enforced. `surface` in the payload tells
+  the hook where the call came from (`cli-chat`, `cli-execute`, `dashboard-chat`,
+  `gateway-chat`, `subagent`).
+- **`tools` scopes a hook** (absent or empty = every tool), `label` names it in
+  the report when it vetoes or fails, and the command runs through the platform
+  shell with the call passed as data — a tool argument can never change which
+  program runs.
+- **This data is NOT redacted**, unlike the debug log and the trace, and that is
+  deliberate: those leave the machine, this is your own command on your own
+  machine. It is the one place a hook sees the real `arguments`, bounded only by
+  the result preview (`4000` characters).
+
+### Running a turn in its own worktree, and getting the diff back
+
+`--worktree` runs the turn in **its own git worktree** of the project:
+
+```bash
+nuvira chat "try the retry fix and see if it holds" --worktree
+nuvira execute "upgrade the parser" --worktree --keep-worktree
+```
+
+Everything the turn does happens in a real checkout of the same repository — same
+code, same `node_modules` (linked in, since a worktree has none), same test runner —
+and when the turn ends you get **the diff against the commit it started from**:
+
+```text
+🌿 isolated in a git worktree: ~/.nuvira/worktrees/try-the-retry-fix-m9x2k1-a4f2
+   base: 9c1f0d2 (branch nuvira/try-the-retry-fix-m9x2k1-a4f2)
+   2 files changed against 9c1f0d2
+   · src/retry.ts
+   · tests/retry.test.ts
+   (the worktree was removed — the diff above is what is left of it)
+```
+
+The details that matter:
+
+- **The base is a COMMIT, and the notice tells you what that means.** `git worktree
+  add … HEAD` checks out `HEAD`, so uncommitted changes in your working tree are
+  **not** visible inside the isolated copy. If your tree was dirty the notice says
+  how many files, so nothing quietly disappears. (Commit first if you want a run to
+  start from your own edits.)
+- **It refuses rather than pretending.** A directory that is not a git repository,
+  a repository with no commit, or a `git` that is not installed cannot be isolated,
+  so the turn **stops** and says why — it never runs unisolated while the result
+  claims otherwise. That failure mode (a caller believing it is isolated and acting
+  on the real tree) is the one thing this feature exists to prevent.
+
+  A refusal is reported as a **failed** turn whose *answer* is the reason, and it is
+  marked `refused: true` so nothing treats it as a retryable failure: the same ask in
+  the same directory refuses the same way, and the dashboard offers no Retry button
+  for one. It is also **never** re-dispatched: the engine's own "the model answered
+  nothing, run the pipeline instead" fallback would run the ask on another engine —
+  in the real tree — so a refused turn is excluded from it.
+- **Untracked files count as changes.** A run that *creates* a file has changed the
+  tree, so new files appear in the diff, not only edits to tracked ones.
+- **`--keep-worktree` keeps the directory** (and its branch) so you can look inside;
+  without it, the worktree is measured and removed. Each turn of an interactive
+  session gets its own worktree, so a follow-up turn starts from the base commit
+  again — pass `--keep-worktree` when you want to keep the result.
+- **In the dashboard, the 🌿 button in the composer** turns isolation on for the
+  conversation, with a 📌 `keep`/`drop` lever beside it once it is on. Every reply
+  then carries a **🌿 card** naming the worktree, the base commit, whether the
+  directory was removed or kept, and the diff itself — rendered with the same diff
+  card the git tool already used, so an isolated change and an ordinary one look the
+  same. Leaving the button OFF sends no isolation request at all, so a server started
+  with `NUVIRA_ISOLATE=1` still isolates.
+- **Deployments ask through the environment**, which is how the surfaces with no
+  command line do it: `NUVIRA_ISOLATE=1 nuvira dashboard` isolates every dashboard
+  turn, and the same for `nuvira gateway run`. A delegated subagent is isolated by
+  its parent (`subagent` takes `worktree: true`), which forks the child into the
+  worktree and measures the diff itself; a child spawned from an isolated turn
+  inherits the directory rather than making a worktree of a worktree.
+
+### Resuming a run without re-paying for it
+
+`--resume` replays the **model calls** of a previous run of the same ask, in the
+same directory, whose input is unchanged — and pays only for the steps that
+changed:
+
+```bash
+nuvira chat "add the retry test and make it pass" --resume
+nuvira execute "add the retry test and make it pass" --resume        # the last run of this ask, here
+nuvira execute "add the retry test and make it pass" --resume fix-ci # a named run
+```
+
+On `nuvira execute` the flag resumes **both** granularities, because they are the
+same run: the pipeline engine skips completed *tasks* (its checkpoints), and the
+loop engine replays unchanged *model calls*. Both resolve their id from the goal
+and directory, so one flag cannot mean two different runs.
+
+What makes a replay safe, and what it reports:
+
+- **A step is replayed only when its input is byte-identical** — the whole thread
+  and the tool schema, hashed together. A changed tool result, a changed schema, a
+  reordered message or an edited goal all **miss**, and that step is paid for again.
+  A cheap "same step number" match would substitute an answer to a question that was
+  never asked, with nothing in the transcript to show it.
+- **An empty recorded step is never replayed.** A response with no text and no tool
+  call is a provider failure; inheriting it would reproduce the failure and hide the
+  fact that the provider was never consulted.
+- **It says what it loaded BEFORE the run, and what it replayed AFTER** — the two
+  are separate facts, and only the second is knowable once the turn is over:
+
+  ```text
+  ↩️  resumed: 1 recorded step(s) loaded — a step replays only when its whole input is unchanged
+  ↩️  resume probe: replayed 0, made 1 model call(s)
+       why not: its input changed (1)
+  ```
+
+  The opening line is about the **record** ("no record for this ask in this
+  directory yet — this run will write one" on the first run), because at that point
+  no step has been attempted and any claim about replay would be one the run has yet
+  to earn. The closing line gives the real counts, and when nothing replayed it says
+  **why** — `its input changed` means the plan moved on and the record is being read
+  (the normal case when a previous run was interrupted by provider retries), while
+  `the recorded step was an empty provider response` or `not in the record` means the
+  record itself could not be used. "Resumed" with nothing replayed is the case that
+  looks like it worked and did not, so it says so plainly.
+- **An ordinary run touches nothing**: no record is read, written, or even looked
+  for unless `--resume` is given. Records live beside the pipeline checkpoints
+  (`~/.nuvira/memory/checkpoints/steps/`), and a resumed run rewrites the one it
+  read, so the next resume replays what this one learned.
+- **In the dashboard, the ↩️ button in the composer** turns resume on for the
+  conversation, and a box appears beside it for an optional **checkpoint id** (blank
+  asks for the record keyed by this ask and this directory, exactly like the CLI's
+  bare `--resume`). Every reply then carries a **↩️ card** with the counts the ledger
+  reported — steps replayed, model calls actually made, the record's id — and a
+  `recorded` / `not recorded` badge, because a turn whose record could not be written
+  is the one the *next* resume will replay nothing from. Leaving the button OFF sends
+  no resume request at all, so a server started with `NUVIRA_RESUME=1` still resumes.
+- **Deployments ask through the environment** (`NUVIRA_RESUME=1`, or a record name),
+  and a forked subagent resumes in **its own** process, with its own record: the
+  model calls happen there, so a resume that only existed in the parent would replay
+  nothing. The child reports what it avoided back to the parent on its own frame.
 
 ---
 

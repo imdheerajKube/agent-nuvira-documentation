@@ -55,6 +55,8 @@ nav:
   - Command Reference: commands.md
   - Full Command Surface: reference/commands-surface.md
   - Architecture: architecture.md
+  - Building custom agents (SDK): agent-sdk.md
+  - VS Code extension: vscode-extension.md
   - What's New: whats-new.md
   - CLI Tour: demos/index.md
   - Product Strategy: product-strategy.md
