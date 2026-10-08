@@ -472,7 +472,7 @@ nuvira models excluded         # show what routing is skipping, and WHY
 
 - **Objective:** Bound how much the agent reads/writes in one call, and choose how much
   REASONING it buys versus how much it saves.
-- **Command:** `nuvira config limit list` · `nuvira config limit set <name> <value>` · `nuvira config limit unset <name>` · `nuvira config capability show` · `nuvira config capability set <balanced|max>` · `nuvira config capability unset`
+- **Command:** `nuvira config limit list` · `nuvira config limit set <name> <value>` · `nuvira config limit unset <name>` · `nuvira config capability show` · `nuvira config capability set <balanced|max>` · `nuvira config capability unset` · `nuvira config catalog-feed show` · `nuvira config catalog-feed set <on|off>` · `nuvira config catalog-feed unset` · `nuvira config catalog-feed refresh`
 - **Examples:**
   ```bash
   nuvira config limit list                          # every size limit + its default
@@ -482,7 +482,18 @@ nuvira models excluded         # show what routing is skipping, and WHY
   nuvira config capability set max                   # cost is not a concern: strongest model,
                                                      # no cost ceilings, longest loop budget
   nuvira config capability unset                     # restore the balanced default
+  nuvira config catalog-feed                        # is the catalogue feed on, and how old is its snapshot?
+  nuvira config catalog-feed set on                 # allow cost/ecosystem PRIORS from the provider catalogue
+  nuvira config catalog-feed refresh                # fetch a fresh snapshot now (never done during a turn)
+  nuvira config catalog-feed unset                  # back to the default (off)
   ```
+- **Catalogue feed:** `OFF` by default. When on, Agent-Nuvira fetches OpenRouter's public model
+  catalogue **out-of-band** and uses it for two priors it cannot measure cold: `cost` (from real
+  pricing) and `ecosystem` (from advertised tool support). A prior is replaced by measurement as
+  samples accumulate, is printed with its source in `nuvira model explain`, and never outranks
+  evidence. Nothing is fetched during a turn, so routing never waits on — or fails because of — a
+  third-party call. It writes `NUVIRA_CATALOG_FEED`, the same switch the dashboard's Process Env
+  page offers.
 - **Capability mode:** `balanced` (the default) uses the best model for complex/critical work
   and cheaper models for simple work, escalating when a stall is detected. `max` routes every
   turn to a strong model (a reasoning floor — not merely a paid one), allows paid models, and
@@ -602,14 +613,28 @@ nuvira models excluded         # show what routing is skipping, and WHY
 ### 5.4 Understand routing decisions
 
 - **Objective:** See *why* a provider/model would be picked for a task (Auto router).
-- **Command:** `nuvira model explain [-a <agent>] [-j] [--since <time>]` · `nuvira model bandit` · `nuvira model ml` · `nuvira model quota`
+- **Command:** `nuvira model explain [-a <agent>] [-j] [--since <time>] [--context-tokens <n>] [--exclude-provider <provider>]` · `nuvira model bandit` · `nuvira model ml` · `nuvira model quota`
 - **Examples:**
   ```bash
   nuvira model explain -a writer --json
+  nuvira model explain "refactor the router" --context-tokens 120000 --exclude-provider groq
   nuvira model bandit -j                 # Thompson-sampling state per provider × complexity
   nuvira model ml -j                     # ML task-similarity router state
   nuvira model quota -j                  # token/request/cost ledger per provider × model
   ```
+- **First-timer detail:** `explain` is offline, so it cannot see a live session's own
+  state. Two runtime-only inputs change the pick, and you can supply them to reproduce a
+  real decision: the prompt token count the turn would have seen (`--context-tokens`, the
+  context-preflight basis) and a provider that already failed this session
+  (`--exclude-provider`, repeatable — it sinks by scoring exactly as a live failure does).
+  The header always states which inputs were in force, so an offline answer is never read
+  as the live one.
+- **Acceptance (read-only):** `explain` also prints the pair's own rated record
+  (`👍 9 / 👎 3 (n=12, 75%)`, from `nuvira rate` and the dashboard Trace tab) and a
+  harness-level fit `P(accepted | features)`. The fit is **NOT used for routing** and it
+  refuses to train below 20 labelled turns (≥5 of each class), printing the honest reason
+  instead of a number that would read as evidence. See
+  `docs/DESIGN_CAPABILITY_BY_MEASUREMENT.md` §8.
 
 ### 5.5 Provider health
 
@@ -848,6 +873,10 @@ nuvira models excluded         # show what routing is skipping, and WHY
   nuvira feedback record --positive -c "great fix"
   nuvira feedback stats
   ```
+- **Not the same as `nuvira rate` (§12.15):** this store is keyed by **trajectory id** (pipeline runs) and
+  is read for stats; `nuvira rate` is keyed by **chat turn** (`traceId`) and is the label a future
+  quality signal is fit to. They are deliberately separate — see
+  `docs/DESIGN_CAPABILITY_BY_MEASUREMENT.md` §8.5.
 
 ---
 
@@ -1217,14 +1246,18 @@ nuvira models excluded         # show what routing is skipping, and WHY
 
 ### 12.5 Knowledge (tag-scoped documents)
 
-- **Objective:** Bring your own documents, give them a tag, and answer questions scoped to that tag. Documents are extracted, chunked and embedded once, so later questions retrieve the relevant passages instead of re-reading the files every turn.
-- **Command:** `nuvira knowledge add <tag> <paths...>` · `nuvira knowledge query <tag> "<question>" [-k <n>]` · `nuvira knowledge list` · `nuvira knowledge stats <tag>` · `nuvira knowledge forget <tag>`
+- **Objective:** Bring your own documents, give them a tag, and answer questions scoped to that tag. Documents are extracted, chunked (heading-aware for Markdown) and embedded once, so later questions retrieve the relevant passages instead of re-reading the files every turn. Retrieval is **hybrid** — vectors plus BM25 — fused by rank and capped per source document, and it keeps only passages that clear a relevance floor, so an unrelated question comes back empty rather than receiving the closest passages of a document it has nothing to do with. `query` answers "where is it mentioned"; `read` answers "what does it say" by returning a document or one section **verbatim**.
+- **Command:** `nuvira knowledge add <tag> <paths...>` · `nuvira knowledge sync <tag> <paths...>` · `nuvira knowledge query <tag> "<question>" [-k <n>]` · `nuvira knowledge toc <tag> [doc]` · `nuvira knowledge read <tag> <doc> [-s <heading>]` · `nuvira knowledge remove <tag> <doc>` · `nuvira knowledge list` · `nuvira knowledge stats <tag>` · `nuvira knowledge forget <tag>`
+- **In chat:** open a message with `#<tag>` (chat REPL, dashboard Chat tab, gateway channel) to pull that tag's passages into the turn — e.g. `#dheeraj-health-report what is my LDL?`. Without a leading tag nothing is retrieved and the turn is unchanged. An unknown tag suggests a near match instead of substituting another document set.
 - **Examples:**
   ```bash
   nuvira knowledge add dheeraj-health-report ~/Documents/labs.pdf
   nuvira knowledge query dheeraj-health-report "what is my LDL and how do I lower it"
-  nuvira knowledge list                                  # tags, documents, chunk counts
-  nuvira knowledge forget dheeraj-health-report          # remove a tag's vectors
+  nuvira knowledge sync specs ./docs/specs            # re-sync; unchanged files are not re-embedded
+  nuvira knowledge toc specs                          # documents and their headings
+  nuvira knowledge read specs roadmap.md -s "Q3"      # one section, verbatim
+  nuvira knowledge list                               # tags, documents, chunk counts
+  nuvira knowledge forget dheeraj-health-report       # remove a tag's vectors and stored text
   ```
 
 ### 12.6 Session continuity
@@ -1353,6 +1386,140 @@ nuvira models excluded         # show what routing is skipping, and WHY
   and the same scenario list back the parity test suite, so the CLI verdict and CI
   cannot disagree.
 
+### 12.14 Hooks (declarative lifecycle rules, no-code)
+
+- **Objective:** Attach a rule to nuvira's own lifecycle seams — `before_tool_call`,
+  `after_tool_call`, `failed_tool_call`, `on_session_end` — without running any
+  third-party code. A hook is DATA, not code: its only possible actions are `deny`
+  (stop a call), `notify` (log a line) and `scan-args` (run the local secret scanner
+  over a call's arguments/result, optionally denying on a hit). Same contract, same
+  `<config-dir>/hooks.json`, as the dashboard's **Agent Management → Hooks** page.
+- **Command:** `nuvira hooks list` · `nuvira hooks add --id … --label … --event … --action …` · `nuvira hooks remove <id>` · `nuvira hooks enable <id>` · `nuvira hooks disable <id>`
+- **Examples:**
+  ```bash
+  nuvira hooks list                        # built-in + user hooks, with state
+  nuvira hooks enable builtin-block-rm-rf  # turn a built-in ON (persists it)
+  nuvira hooks add --id no-force-push --label "No force push" \
+    --event before_tool_call --action deny \
+    --tool run_terminal --arg "command=*git push --force*" --reason "no force push"
+  nuvira hooks disable no-force-push
+  nuvira hooks remove no-force-push        # remove a user hook
+  ```
+- **Starter set:** four built-in hooks ship **DISABLED** (block `rm -rf`, block writes
+  that contain a secret, flag secrets in terminal commands, log failed tool calls).
+  `enable` writes one into `hooks.json` so the runtime enforces it. See `docs/HOOKS.md`.
+
+### 12.15 Rate a turn (the label the harness cannot derive)
+
+- **Objective:** Tell the harness whether the last turn was actually what you wanted.
+  Every other signal nuvira has is *derived* from what the run did (a tool ran, a plan
+  step closed, an honesty flag fired); only you know whether the work was right. That
+  makes your verdict the one input the harness cannot compute — and, because the derived
+  correction signal can only ever produce negatives, the only source of a POSITIVE label.
+- **Command:** `nuvira rate <good|bad> [--trace <id>]` · `nuvira rate --list` · `nuvira rate --stats` · `nuvira rate --explain <id>` · `nuvira rate --export [path] [--format json|csv]` · `nuvira rate --import <file>` · `nuvira rate --merge <file> [--replace]`
+- **Examples:**
+  ```bash
+  nuvira rate good                 # the last turn was what you wanted
+  nuvira rate bad                  # it was not
+  nuvira rate bad -t t_abc123      # rate a specific turn (`nuvira trace list`)
+  nuvira rate --list               # recent verdicts
+  nuvira rate --stats              # labels, class balance, per-pair record, fit status
+  nuvira rate --explain t_abc123   # one trace: its features, its label, the fitted P(accepted)
+  nuvira rate --export corpus.json # ship the labelled corpus for offline fitting
+  nuvira rate --export corpus.csv  # CSV (or --format csv); no path prints to stdout
+  nuvira rate --import corpus.json # merge a corpus collected on another machine
+  nuvira rate --merge corpus.json  # reconcile against local labels (keeps local on a conflict)
+  nuvira rate --merge corpus.json --replace   # let the incoming label win
+  ```
+- **Explain:** `--explain <id>` audits ONE turn — the features the fit derives for it, its
+  label (or an honest `unrated`), and the fitted `P(accepted | features)`. It uses the same
+  `featuresFromTrace` the fit uses, so the audit cannot disagree with the model. Read-only.
+- **Export:** `--export` writes the SAME rows a fit here reads (the labelled turns, with
+  their features and provenance), so nothing is lost in the hand-off. JSON keeps the full
+  structure; CSV is the flat form (`traceId,provider,model,at,accepted,source,` + one column
+  per feature). With no path it prints to stdout to be piped.
+- **Import:** `--import` merges an exported corpus (JSON or CSV, auto-detected) back in,
+  deduped by trace, so re-importing the same file is idempotent. The merged rows are read by
+  the fit alongside your own. The dashboard Trace tab has the same Export/Import controls.
+- **Merge:** `--merge` reconciles against your LOCAL labels and reports conflicts (a trace you
+  label differently). By default the LOCAL label is kept; `--replace` lets the incoming label
+  win (it rewrites the local trace/corpus row, so it must be asked for).
+- **Fit offline:** `node scripts/fit-acceptance.mjs corpus.csv` runs the SAME deterministic
+  fit on an exported file and prints the model — no live store, no network. It produces the
+  identical coefficients the live `--stats`/`model explain` show.
+- **Seeding the floor:** `node scripts/seed-acceptance.mjs [count]` reports how far you are
+  from 20 labels (with ≥5 of each class) and lists recent UNRATED turns with the exact
+  `nuvira rate … -t <id>` command for each. It rates nothing — the label must be yours.
+- **What it writes:** the verdict on the turn's reasoning trace (`userVerdict`, with its
+  source) and, when that turn delivered an authored file, a label on the matching row of
+  the quality corpus. The dashboard's **Trace tab** has the same control (👍/👎).
+- **What it does to routing (Bundle 36):** a **rejection** also corrects the ROUTER — it
+  applies the deferred `userAccepted: false` delta to the bandit arm that served the turn
+  (`provider`/`model` at that complexity), exactly as the derived correction already did,
+  and exactly once per trace (re-rating cannot double-count). An **acceptance** moves no
+  bandit arm: the turn was already recorded as its own outcome, so a 👍 adds no new
+  observation. So a 👎 changes what the agent tries next, not only what it records.
+  **Measure it:** `node scripts/measure-bandit-correction.mjs [n]` runs the real bandit
+  maths on a controlled sequence and shows a rejected arm's θ dropping turn by turn
+  (and the brake it applies to an arm that keeps being credited).
+- **What it does NOT do:** the FITTED quality model routes nothing, and no score is
+  derived from the label. `--stats`/`--export` collect a dataset so a measured quality
+  signal can be fit to labelled turns; a turn nobody rated stays unlabelled, because
+  reading silence as acceptance would fabricate the positive class instead of measuring
+  it. See `docs/DESIGN_CAPABILITY_BY_MEASUREMENT.md` §8.
+  (For trajectory ratings in the older store, use `nuvira feedback` — §7.3.)
+- **Other label sources:** behaviour is also inferred when you do not rate — a near-verbatim
+  **re-ask** or a **hand-edit** of the delivered file is a derived rejection, and an untouched
+  file you then **reference** (without reporting a regression) is a derived acceptance. These
+  carry `source: 'derived'` and are recorded on the same trace/corpus rows.
+- **Where it is read:** `nuvira model explain` prints the pair's rated record and the fitted
+  `P(accepted | features)` read-only (§5.4). `nuvira doctor` reports fit readiness as an
+  advisory check. The fit is not used for routing and refuses below 20 labelled turns.
+- **Full walkthrough:** `docs/ACCEPTANCE.md` covers the whole workflow — rate, infer, fit,
+  export, import/merge, and fit offline — in one place.
+
+### 12.16 Decisions (the must-ask choices, kept as project artifacts)
+
+- **Objective:** When the agent cannot proceed without YOUR decision it calls `ask_user`. That
+  question and your answer used to live only in the turn's transcript — close the terminal and
+  the decision was gone. Now a genuine, shown ask is recorded as a **project artifact** you can
+  go back through and revise.
+- **Command:** `nuvira decisions [--dir <path>] [--for <text>] [--limit <n>] [--json]` ·
+  `nuvira decisions show <id> [--json]` · `nuvira decisions revise <id> --answer <text> [--note <text>]`
+- **Examples:**
+  ```bash
+  nuvira decisions                        # every decision recorded for this project
+  nuvira decisions --for "database migration"   # decisions relevant to a new ask
+  nuvira decisions show dec-123-abc       # the full record, incl. its history
+  nuvira decisions revise dec-123-abc --answer "Postgres" --note "needed JSONB"
+  ```
+- **What it writes:** `<project>/.nuvira/decisions.jsonl` (one JSON record per decision,
+  append-only, the machine-readable source of truth) and a generated
+  `<project>/.nuvira/DECISIONS.md` a person can read — `.nuvira/` is gitignored, so a decision
+  log never dirties a repo. A revised decision keeps its **previous answer in the history**, so
+  a choice that changed is documented rather than overwritten.
+- **What it does NOT do:** it is never a SUBSTITUTE for asking — nothing here suppresses an
+  `ask_user` call or answers one; it records what was asked and answered. An **unattended**
+  default (no human reachable) is an ASSUMPTION and is **not** recorded as a decision. Every
+  write is best-effort and **redacts obvious secrets** (keys, tokens, `password:`/`api_key:`
+  values) before touching disk.
+- **Reading it back:** `--for "<ask>"` ranks recorded decisions by shared significant tokens
+  (no model, no phrase list), so a later, related turn can be shown what was already decided.
+  A turn with an attached project ALSO reads this back automatically: when the ask shares a
+  significant token with a recorded decision, up to 3 are injected as an explicitly-labelled
+  **`[Previously decided …]`** context block. This is **advisory only** — the block says a
+  changed situation may still ask, and nothing suppresses an `ask_user`; it exists so a settled
+  question is not re-asked, not to make the agent silent. It is inert when nothing matches (a
+  turn with no related decision is byte-identical to one from a build without this), and it is
+  **off under a test runner** unless `NUVIRA_DECISION_LOG=on`.
+- **Dashboard:** the **Decisions** page (`/decisions`) shows the same store for the selected
+  workspace — list, search with `--for`, and revise inline — reading the same
+  `.nuvira/decisions.jsonl` via `GET /api/decisions` and `POST /api/decisions/revise`.
+- **Measure the read-back:** `node scripts/measure-decision-recall.mjs` runs the real built
+  `recallDecisionBlock` over a throwaway project and reports which related asks get a block and
+  which unrelated asks stay inert (measured 4/4 and 3/3). It does NOT measure the real-world
+  re-ask rate — that needs labelled sessions.
+
 ---
 
 ## 13. Cache & sandbox
@@ -1444,6 +1611,8 @@ nuvira continuity    session snapshots + semantic recall (list/clear)
 nuvira bedrock       AWS Bedrock onboarding (setup/status/test)
 nuvira credentials   release tokens (status/set/forget/verify)
 nuvira website       open the project site (capabilities/commands/docs/setup)
+nuvira rate          rate the last turn (the label a quality signal is fit to)
+nuvira decisions     the must-ask decisions recorded for this project (list/search/revise)
 ```
 
 ---

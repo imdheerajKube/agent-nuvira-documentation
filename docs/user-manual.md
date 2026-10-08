@@ -291,6 +291,67 @@ A model pinned in the chat picker is a **preference**, not a guarantee, unless y
 - A **model id is validated before it is saved** (CLI and dashboard): an id the provider does not
   serve is refused with the closest matches, instead of being repaired by substitution at run time.
 
+### When a model fails mid-task — what the agent does, and what it will ask you
+
+You should never have to say *"retry"*. A model failing mid-task is the agent's problem to solve,
+and the order of remedies is fixed:
+
+1. **The same model is asked once more.** A single empty or broken reply can be a blip at a shared
+   endpoint, so it gets one retry — never the five-in-a-row that ended a real run.
+2. **The work is handed to a different model.** On the second consecutive unusable reply the turn
+   hands off. The pair that failed is excluded **for that model only** — a free tier meters per model,
+   so the provider's other models are tried before the provider is abandoned. Hand-offs are bounded
+   (5 per turn) and they grant extra step budget, so a run against two or three dead models still has
+   room to finish on a good one.
+3. **The failure is written down.** An empty reply is recorded as a *failure* for that provider×model
+   (it used to be recorded as a success, which is how a model that answered with nothing kept its
+   "verified" badge). It is parked for two minutes, and the model's learned score takes a negative
+   reward, so the next turn routes around it.
+4. **Resuming a task prefers the model that already did it.** A continuation ("resume", "continue")
+   carries no task of its own, so the router re-decides — and it now offers the pair that actually
+   **delivered** this task first, provided it is still callable. That is what stops a working run
+   from degrading onto an untried model on its next turn.
+
+**If nothing left can do it, you get an investigation, not an apology.** The turn ends with the
+measured facts and no question to answer:
+
+```
+I couldn't finish: build the knowledge base app
+
+Tried 3 models, and every one of them was unable to do it:
+  • gemini/gemma-4-26b-a4b-it — answered with nothing (no text, no tool call)
+  • local/gpt-oss:120b-cloud — answered with nothing (no text, no tool call)
+  • groq/qwen3.8-27b — out of quota for now
+
+Unavailable right now, and when each comes back:
+  • groq — out of quota for now; free at 18:42 (about 12m)
+
+538 models across 23 providers were eligible at the time.
+
+This was a routing gap, not a shortage: only 3 of 538 eligible models were actually tried.
+The next attempt routes to an untried model automatically — you do not need to trigger anything.
+
+Things that would unblock it:
+  • Recharge or replace the credential for deepseek — it was rejected, so no amount of waiting fixes it.
+  • Wait — a capable model frees up at 18:42, about 12m from now.
+  • Allow a weaker or cheaper model for this task and accept that its answer may need more checking.
+  • Narrow the ask — one file, one change, or one question at a time.
+```
+
+Two details are deliberate. **Reset windows are wall-clock times**, not wait lengths — *"free at
+18:42"* is something you can plan around in a way that *"in 12 minutes"* is not. And a **routing gap
+is named as a routing gap**: if the eligible pool was healthy and the walk simply did not reach the
+rest of it, the agent says so instead of presenting it as an outage. Honest-sounding generalities
+("the language model was unavailable") are exactly what this replaced.
+
+**Terminal commands follow the same rule.** A command that is killed by the timeout is reported as a
+**timeout** — not as a broken project — together with what to do instead (narrow it, make it
+non-interactive, or ask for a longer `timeout_ms`). The same command cannot be re-run indefinitely:
+it gets **one** blind retry, and the third identical failure at the same timeout is refused in
+milliseconds rather than spending another two minutes — raising `timeout_ms` or changing the command
+is a genuinely new attempt and is never refused — and a success clears the count. In an interactive session the *default* command timeout is 60 s rather
+than 120 s, because two minutes of silence in front of a person is not patience.
+
 ### OmniRoute — one endpoint in front of many providers
 
 [OmniRoute](https://github.com/diegosouzapw/OmniRoute) is a local, MIT-licensed AI gateway that
@@ -853,15 +914,74 @@ nuvira knowledge add dheeraj-health-report ~/Documents/labs.pdf
 # Ask a question — the data part is answered from the PDF, the rest from the model.
 nuvira knowledge query dheeraj-health-report "what is my LDL and how do I lower it"
 
+nuvira knowledge sync dheeraj-health-report ~/Documents/health   # re-sync a folder
+nuvira knowledge toc dheeraj-health-report     # documents and their headings
+nuvira knowledge read dheeraj-health-report labs.pdf -s "Lipids"  # one section, VERBATIM
 nuvira knowledge list                          # tags, documents, chunk counts
 nuvira knowledge stats dheeraj-health-report   # one tag in detail
-nuvira knowledge forget dheeraj-health-report  # remove a tag's vectors
+nuvira knowledge forget dheeraj-health-report  # remove a tag's vectors and stored text
 ```
 
 The agent can drive the same pipeline mid-task with the `knowledge` tool
-(`action: add | query | list | forget | stats`), so "answer this from my tagged
-data" is a single agent step. Tags are normalized — `Dheeraj Health Report`
-becomes `dheeraj-health-report`.
+(`action: add | query | toc | read | sync | list | forget | stats`), so "answer
+this from my tagged data" is a single agent step. Tags are normalized —
+`Dheeraj Health Report` becomes `dheeraj-health-report`.
+
+**Ask vs read.** `query` answers *where it is mentioned*: it returns the passages
+most relevant to a question. `read` answers *what it says*: it returns a whole
+document, or one section named by its heading, exactly as the author wrote it —
+which is what you want before implementing a spec or quoting a clause, since no
+amount of passage ranking substitutes for the section itself. `toc` lists what a
+tag holds so you can name the section to read.
+
+**Keeping a folder in step.** `add` ingests once. `sync` is for a folder you keep
+updating: a file whose contents are unchanged is not extracted, chunked or
+re-embedded (it is counted as `unchanged`), a changed file replaces its own
+chunks, and a file that has **disappeared** stops being served — so a deleted
+document cannot keep answering questions.
+
+**How it searches.** Retrieval runs two searches and fuses them: a vector search
+(what the passage is *about*) and a keyword search over the stored text (the exact
+identifier, clause number or error code you typed). Neither alone is enough —
+embeddings miss a literal token, keywords miss a paraphrase — so both run, their
+rankings are merged, and at most three passages from any one document are kept so
+a single long file cannot fill the whole answer.
+
+#### Asking from a tag in chat: open the message with `#tag`
+
+In chat — the `nuvira chat` REPL, the dashboard Chat tab and a gateway channel
+(WhatsApp/Telegram) alike — opening a message with a tag pulls that tag's
+relevant passages into the turn BEFORE the model sees the question:
+
+```
+#dheeraj-health-report what is my LDL and what does my report say to do about it?
+```
+
+The trigger is the leading `#tag` on its own: `#1 priority: fix the build`, a
+Markdown `# Title`, a shebang and a mid-sentence `C#` are left alone. A leading
+`/` is still the chat's command prefix, so only `#` is used for this.
+
+**Nothing happens unless you ask.** A message without a leading tag is unchanged:
+no retrieval runs, no passages are injected, and the agent's prompt is byte-for-byte
+what it would have been — the block is an ordinary user-turn message, so the system
+prompt (persona, tool contract, reasoning rules) is untouched and stays cacheable.
+If you have no tags at all, even a stray leading `#word` (a pasted `#include`) does
+nothing.
+
+**Hits are floored, not guessed.** Retrieval keeps only passages that clear a
+relevance floor calibrated against the real embedding model (unrelated questions
+reach 0.425 cosine, correct answers start at 0.635, and the floor sits between
+them), so an unrelated question comes back empty instead of receiving the closest
+passages of a document it has nothing to do with. When nothing clears the
+floor you get "the tagged documents did not cover it" and a normal answer, not a
+stretched one. A passage that was found by its **words** rather than its meaning is
+marked `term match` in the block, so a low similarity score is explained rather
+than looking like a retrieval mistake. If a tag does not exist you get a suggestion
+(`did you mean #dheeraj-health-report?`) and the question is answered normally —
+the wrong document set is never substituted.
+
+Ingest documents with the CLI or the `knowledge` tool; a tag only matters at
+question time.
 
 **Privacy.** Your documents and their vectors live in `~/.nuvira/memory/`, outside
 any repository; they are never committed and never shipped in the npm package. Do

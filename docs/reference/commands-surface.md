@@ -241,6 +241,26 @@ Set the capability mode: config capability set <balanced|max>
 
 Restore the default capability mode (balanced)
 
+### `nuvira config catalog-feed`
+
+Show or change the OpenRouter catalogue feed (cost/ecosystem priors only)
+
+### `nuvira config catalog-feed show`
+
+Show whether the catalogue feed is on, and how old its snapshot is
+
+### `nuvira config catalog-feed set`
+
+Enable or disable: config catalog-feed set <on|off>
+
+### `nuvira config catalog-feed unset`
+
+Remove the setting, restoring the default (off)
+
+### `nuvira config catalog-feed refresh`
+
+Fetch a fresh catalogue snapshot now (never runs during a turn)
+
 ### `nuvira cache`
 
 Manage inference cache
@@ -698,7 +718,7 @@ Show model routing recommendations
 
 Explain Auto model routing — why a provider/model would be picked for a task
 
-   - flags: `--agent <agent>, --json, --since <since>`
+   - flags: `--agent <agent>, --context-tokens <context_tokens>, --exclude-provider <exclude_provider>, --json, --since <since>`
 ### `nuvira model health`
 
 Quick health check for the currently active provider
@@ -1414,6 +1434,23 @@ Ingest files or folders under a tag (extracted, chunked and embedded once)
 Retrieve the most relevant passages for a question, scoped to a tag
 
    - flags: `--top-k <top_k>`
+### `nuvira knowledge toc`
+
+List a tag's documents and the headings in each
+
+### `nuvira knowledge read`
+
+Print a document, or one named section, VERBATIM (not a summary)
+
+   - flags: `--section <section>`
+### `nuvira knowledge remove`
+
+Remove ONE document from a tag (its chunks, stored text and manifest row)
+
+### `nuvira knowledge sync`
+
+Bring a tag up to date with its folders — hash-gated, prunes files that vanished
+
 ### `nuvira knowledge list`
 
 List knowledge tags with document and chunk counts
@@ -1425,6 +1462,32 @@ Show details for one knowledge tag
 ### `nuvira knowledge forget`
 
 Remove a tag's vectors and manifest entry
+
+### `nuvira hooks`
+
+Declarative lifecycle hooks — list/add/remove the rules that deny, notify or secret-scan tool calls (the same hooks.json the dashboard Hooks page edits; a hook is data, never code)
+
+   - flags: `--verbose`
+### `nuvira hooks list`
+
+List built-in and user hooks with their seam, action and state
+
+### `nuvira hooks add`
+
+Declare a new hook (it is enabled unless --disabled is given)
+
+   - flags: `--action <action>, --arg <arg>, --cwd <cwd>, --deny-on-hit, --disabled, --event <event>, --id <id>, --label <label>, --message <message>, --reason <reason>, --surface <surface>, --tool <tool>`
+### `nuvira hooks remove`
+
+Remove a user hook (a built-in cannot be deleted — disable it instead)
+
+### `nuvira hooks enable`
+
+Turn a hook on (works on a built-in too)
+
+### `nuvira hooks disable`
+
+Turn a hook off
 
 ### `nuvira trace`
 
@@ -1448,6 +1511,22 @@ Step-by-step replay of a trace — every LLM call with prompt digest, model, tok
 
 Delete all stored traces
 
+### `nuvira rate`
+
+Rate the last turn (good|bad) — records the one label a quality signal can be fit to (also on the dashboard Trace tab)
+
+   - flags: `--explain <explain>, --export [export], --format <format>, --import <import>, --list, --merge <merge>, --replace, --stats, --trace <trace>`
+### `nuvira decisions`
+
+The must-ask decisions recorded for this project — list, search, and revise them (written by ask_user)
+
+   - flags: `--dir <dir>, --for <for>, --json, --limit <limit>`
+### `nuvira decisions show`
+
+   - flags: `--json`
+### `nuvira decisions revise`
+
+   - flags: `--answer <answer>, --note <note>`
 ### `nuvira continuity`
 
 Session continuity — what is stored, and how to forget it
@@ -1468,4 +1547,4 @@ Open the Agent-Nuvira website — capabilities, commands, docs, setup
    - flags: `--url`
 ---
 
-*472 commands (incl. subcommands) · generated from the live CLI — this file is the drift-guarded surface.*
+*498 commands (incl. subcommands) · generated from the live CLI — this file is the drift-guarded surface.*
