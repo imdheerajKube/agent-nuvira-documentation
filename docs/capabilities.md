@@ -5,8 +5,8 @@ you can run yourself.
 
 | Surface | Size | Command |
 |---|---|---|
-| Agent tools | **110** | `nuvira tools list` |
-| CLI command entries | **289** across **48** groups | see [Full Command Surface](reference/commands-surface.md) |
+| Agent tools | **114** | `nuvira tools list` |
+| CLI command entries | **353** across **58** top-level groups | see [Full Command Surface](reference/commands-surface.md) |
 | Inference providers | **22** | `nuvira provider list` |
 | Messaging platforms | **22** | `nuvira gateway status` |
 | Skills | **155** on disk | `nuvira skills list` |
@@ -70,7 +70,7 @@ providers and models, hard cost cap, privacy floor), and RBAC.
 
 ```bash
 nuvira doctor                              # full environment diagnosis
-nuvira tools list                          # the 110 tools, with descriptions
+nuvira tools list                          # the 114 tools, with descriptions
 nuvira skills search docker                # find a skill by need
 nuvira skill run security-audit --dry-run  # print the plan, run nothing
 nuvira workflow list                       # the ten built-in pipelines

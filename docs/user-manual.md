@@ -156,8 +156,8 @@ subcommands; `nuvira <group> <sub> --help` shows flags and examples.
 
 | File | What it is |
 |---|---|
-| [Full Command Surface](reference/commands-surface.md) | **Generated** from the live commander tree — 289 entries, the authoritative list. |
-| [Command reference](commands.md) | Curated prose: objective, command, example per entry (88 sections). |
+| `docs/COMMANDS_SURFACE.md` | **Generated** from the live commander tree — 289 entries, the authoritative list. |
+| `docs/COMMANDS.md` | Curated prose: objective, command, example per entry (88 sections). |
 
 That document is generated from the live command tree by the project's own build, and a
 drift guard fails CI if a command is added or renamed without regenerating it — so the
@@ -751,7 +751,7 @@ runs). Ten ship built-in:
 ```bash
 nuvira workflow list
 nuvira workflow run quick-fix "fix the failing test in auth"
-nuvira workflow run feature-implement "add CSV export" --auto-route
+nuvira workflow run feature-implement "add CSV export" --provider auto   # let the router pick per step
 nuvira workflow search security        # search the registry
 nuvira workflow install <name>
 nuvira workflow info <name>
@@ -1394,7 +1394,7 @@ NUVIRA_DEBUG_LOG=1 nuvira chat "list the working directory, then answer"
 
 ```bash
 NUVIRA_DEBUG_LOG=1 nuvira dashboard      # the server process logs every dashboard turn
-NUVIRA_DEBUG_LOG=1 nuvira gateway run    # every inbound messaging turn
+NUVIRA_DEBUG_LOG=1 nuvira gateway start  # every inbound messaging turn
 NUVIRA_DEBUG_LOG=1 nuvira execute "run the failing test"
 ```
 
@@ -1506,7 +1506,7 @@ The same switch works on every surface and in the forked child, so a gateway
 
 ```bash
 NUVIRA_OTEL=1 OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318 nuvira dashboard
-NUVIRA_OTEL=1 OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318 nuvira gateway run
+NUVIRA_OTEL=1 OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318 nuvira gateway start
 NUVIRA_OTEL=1 OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318 nuvira execute "run the failing test"
 ```
 
@@ -1663,7 +1663,7 @@ The details that matter:
   with `NUVIRA_ISOLATE=1` still isolates.
 - **Deployments ask through the environment**, which is how the surfaces with no
   command line do it: `NUVIRA_ISOLATE=1 nuvira dashboard` isolates every dashboard
-  turn, and the same for `nuvira gateway run`. A delegated subagent is isolated by
+  turn, and the same for `nuvira gateway start`. A delegated subagent is isolated by
   its parent (`subagent` takes `worktree: true`), which forks the child into the
   worktree and measures the diff itself; a child spawned from an isolated turn
   inherits the directory rather than making a worktree of a worktree.

@@ -14,7 +14,7 @@ terminal, a web dashboard, or any of 22 messaging platforms.
 - **[User Manual](user-manual.md)** — install, configure, and use every surface in depth.
 - **[Capabilities](capabilities.md)** — what it can do beyond writing code.
 - **[Command Reference](commands.md)** — curated commands with examples.
-- **[Full Command Surface](reference/commands-surface.md)** — all 289 command entries,
+- **[Full Command Surface](reference/commands-surface.md)** — all 353 command entries,
   generated from the live CLI tree.
 - **[Architecture](architecture.md)** — how the execution engine is put together.
 - **[Building custom agents (SDK)](agent-sdk.md)** — write, test and register your
@@ -27,8 +27,8 @@ terminal, a web dashboard, or any of 22 messaging platforms.
 
 | Surface | Size |
 |---|---|
-| Agent tools | **110** |
-| CLI command entries | **289** across **48** groups |
+| Agent tools | **114** |
+| CLI command entries | **353** across **58** top-level groups |
 | Inference providers | **22** |
 | Messaging platforms | **22** |
 | Skills | **155** |
